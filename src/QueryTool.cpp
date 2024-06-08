@@ -83,10 +83,8 @@ QueryTool::QueryTool(FXApp *app) :
   new FXTabItem(tabBook, "Testing", NULL);
 #endif
   // Initial empty tab
-#if 1
-  FXVerticalFrame *initialTab = new FXVerticalFrame(tabBook, LAYOUT_FILL_X | LAYOUT_FILL_Y);
-#endif
-  new FXLabel(initialTab, "No connection. Please connect to a server.");
+  FXHorizontalFrame *frame = new FXHorizontalFrame(tabBook, FRAME_THICK|FRAME_RAISED);
+  new FXText(frame, nullptr, 0, LAYOUT_FILL_X | LAYOUT_FILL_Y);
 
 }
 
@@ -151,6 +149,9 @@ long QueryTool::OnCommandQuit(FXObject*, FXSelector, void*)
 
 long QueryTool::OnCommandTestQuery(FX::FXObject *, FX::FXSelector, void *)
 {
+  printf("Please work!\n");
+  FXTabItem *blah = new FXTabItem(tabBook, "Additional tab", NULL);
+#if 0
   FXTabItem *newTab;
   if (tabBook == nullptr) {
     tabBook = new FXTabBook(queryFrame, nullptr, 0, LAYOUT_FILL_X | LAYOUT_FILL_Y);
@@ -158,12 +159,16 @@ long QueryTool::OnCommandTestQuery(FX::FXObject *, FX::FXSelector, void *)
   } else {
     new FXTabItem(tabBook, "Additional tab", NULL);
   }
-
+#endif
   FXHorizontalFrame *frame = new FXHorizontalFrame(tabBook, FRAME_THICK|FRAME_RAISED);
-  new FXLabel(frame, "No connection. Please connect to a server.");
+  new FXText(frame, nullptr, 0, LAYOUT_FILL_X | LAYOUT_FILL_Y);
 
-  this->recalc();
+  printf("%d\n", blah->shown());
 
+  blah->create();
+//  frame->create();
+  blah->show();
+  tabBook->recalc();
   return 1;
 }
 
