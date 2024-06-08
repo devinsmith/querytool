@@ -29,7 +29,8 @@ public:
     ID_QUIT,
     ID_CONNECT,
     ID_DISCONNECT,
-    ID_PREFERENCES
+    ID_PREFERENCES,
+    ID_TEST_QUERY
   };
 
   void create();
@@ -39,14 +40,17 @@ public:
   long OnCommandDisconnect(FXObject*, FXSelector, void*);
   long OnCommandPreferences(FXObject*, FXSelector, void*);
   long OnCommandQuit(FXObject*, FXSelector, void*);
+  long OnCommandTestQuery(FXObject*, FXSelector, void*);
 private:
-  QueryTool() {}
+  QueryTool() = default;
 
   FXTabBook *tabBook;
   FXTreeList *treeList;
 
-  FXMenuPane *menuPanes[3];
-  FXMenuTitle *menuTitle[3];
+  FXVerticalFrame *queryFrame;
+
+  FXMenuPane *menuPanes[4];
+  FXMenuTitle *menuTitle[4];
 
   FXMenuBar *menuBar;
 
@@ -61,6 +65,9 @@ private:
 
   // Help
   FXMenuCommand *m_help_about;
+
+  // Tests
+  FXMenuCommand *m_test_show_query;
 };
 
 #endif // QUERYTOOL_H

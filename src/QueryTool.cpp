@@ -24,13 +24,15 @@ FXDEFMAP(QueryTool) queryToolMap[] = {
   FXMAPFUNC(SEL_COMMAND, QueryTool::ID_ABOUT, QueryTool::OnCommandAbout),
   FXMAPFUNC(SEL_COMMAND, QueryTool::ID_CONNECT, QueryTool::OnCommandConnect),
   FXMAPFUNC(SEL_COMMAND, QueryTool::ID_PREFERENCES, QueryTool::OnCommandPreferences),
-  FXMAPFUNC(SEL_COMMAND, QueryTool::ID_QUIT, QueryTool::OnCommandQuit)
+  FXMAPFUNC(SEL_COMMAND, QueryTool::ID_QUIT, QueryTool::OnCommandQuit),
+  FXMAPFUNC(SEL_COMMAND, QueryTool::ID_TEST_QUERY, QueryTool::OnCommandTestQuery)
 };
 
 FXIMPLEMENT(QueryTool, FXMainWindow, queryToolMap, ARRAYNUMBER(queryToolMap))
 
 QueryTool::QueryTool(FXApp *app) :
-    FXMainWindow(app, "SQL Query Tool", nullptr, nullptr, DECOR_ALL, 0, 0, 800, 600)
+    FXMainWindow(app, "SQL Query Tool", nullptr, nullptr, DECOR_ALL, 0, 0, 800, 600),
+    tabBook{nullptr}
 {
   menuBar = new FXMenuBar(this, LAYOUT_SIDE_TOP | LAYOUT_FILL_X);
 
@@ -55,12 +57,16 @@ QueryTool::QueryTool(FXApp *app) :
   m_help_about = new FXMenuCommand(menuPanes[2], "&About...", nullptr, this, ID_ABOUT);
   menuTitle[2] = new FXMenuTitle(menuBar, "&Help", nullptr, menuPanes[2]);
 
+  // Test menu
+  menuPanes[3] = new FXMenuPane(this);
+  m_test_show_query = new FXMenuCommand(menuPanes[3], "Show test query", nullptr, this, ID_TEST_QUERY);
+  menuTitle[3] = new FXMenuTitle(menuBar, "&Test", nullptr, menuPanes[3]);
 
   FXSplitter *splitter = new FXSplitter(this, LAYOUT_SIDE_TOP | LAYOUT_FILL_X | LAYOUT_FILL_Y);
 
   FXVerticalFrame *srvFrame = new FXVerticalFrame(splitter, FRAME_SUNKEN | FRAME_THICK |
       LAYOUT_FILL_X | LAYOUT_FILL_Y, 0,0, 200,0, 0,0,0,0);
-  FXVerticalFrame *queryFrame = new FXVerticalFrame(splitter, FRAME_SUNKEN|FRAME_THICK|LAYOUT_FILL_X|LAYOUT_FILL_Y);
+  queryFrame = new FXVerticalFrame(splitter, FRAME_SUNKEN|FRAME_THICK|LAYOUT_FILL_X|LAYOUT_FILL_Y);
 //  queryFrame->setBackColor(FXRGB(128,128,128));
 
 #if 1
@@ -71,16 +77,16 @@ QueryTool::QueryTool(FXApp *app) :
   FXTreeItem *rootItem = new FXTreeItem("SQL Connections");
   treeList->appendItem(nullptr, rootItem);
 #endif
-#if 0
+#if 1
   // Create the tab book on the right
-  tabBook = new FXTabBook(queryFrame, this, 0, LAYOUT_FILL_X | LAYOUT_FILL_Y);
+  tabBook = new FXTabBook(queryFrame, nullptr, 0, LAYOUT_FILL_X | LAYOUT_FILL_Y);
   new FXTabItem(tabBook, "Testing", NULL);
 #endif
   // Initial empty tab
-#if 0
+#if 1
   FXVerticalFrame *initialTab = new FXVerticalFrame(tabBook, LAYOUT_FILL_X | LAYOUT_FILL_Y);
 #endif
-  //new FXLabel(queryFrame, "No connection. Please connect to a server.");
+  new FXLabel(initialTab, "No connection. Please connect to a server.");
 
 }
 
@@ -140,6 +146,24 @@ long QueryTool::OnCommandPreferences(FXObject*, FXSelector, void*)
 long QueryTool::OnCommandQuit(FXObject*, FXSelector, void*)
 {
   getApp()->exit(0);
+  return 1;
+}
+
+long QueryTool::OnCommandTestQuery(FX::FXObject *, FX::FXSelector, void *)
+{
+  FXTabItem *newTab;
+  if (tabBook == nullptr) {
+    tabBook = new FXTabBook(queryFrame, nullptr, 0, LAYOUT_FILL_X | LAYOUT_FILL_Y);
+    new FXTabItem(tabBook, "Brand new", NULL);
+  } else {
+    new FXTabItem(tabBook, "Additional tab", NULL);
+  }
+
+  FXHorizontalFrame *frame = new FXHorizontalFrame(tabBook, FRAME_THICK|FRAME_RAISED);
+  new FXLabel(frame, "No connection. Please connect to a server.");
+
+  this->recalc();
+
   return 1;
 }
 
