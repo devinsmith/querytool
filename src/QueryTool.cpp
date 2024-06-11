@@ -25,7 +25,8 @@ FXDEFMAP(QueryTool) queryToolMap[] = {
   FXMAPFUNC(SEL_COMMAND, QueryTool::ID_CONNECT, QueryTool::OnCommandConnect),
   FXMAPFUNC(SEL_COMMAND, QueryTool::ID_PREFERENCES, QueryTool::OnCommandPreferences),
   FXMAPFUNC(SEL_COMMAND, QueryTool::ID_QUIT, QueryTool::OnCommandQuit),
-  FXMAPFUNC(SEL_COMMAND, QueryTool::ID_TEST_QUERY, QueryTool::OnCommandTestQuery)
+  FXMAPFUNC(SEL_COMMAND, QueryTool::ID_TEST_QUERY, QueryTool::OnCommandTestQuery),
+  FXMAPFUNC(SEL_COMMAND, QueryTool::ID_TEST_QUERY_TABLE, QueryTool::OnCommandTestQueryTable)
 };
 
 FXIMPLEMENT(QueryTool, FXMainWindow, queryToolMap, ARRAYNUMBER(queryToolMap))
@@ -60,31 +61,31 @@ QueryTool::QueryTool(FXApp *app) :
   // Test menu
   menuPanes[3] = new FXMenuPane(this);
   m_test_show_query = new FXMenuCommand(menuPanes[3], "Show test query", nullptr, this, ID_TEST_QUERY);
+  m_test_show_query_table = new FXMenuCommand(menuPanes[3], "Show test query table", nullptr, this, ID_TEST_QUERY_TABLE);
   menuTitle[3] = new FXMenuTitle(menuBar, "&Test", nullptr, menuPanes[3]);
 
-  FXSplitter *splitter = new FXSplitter(this, LAYOUT_SIDE_TOP | LAYOUT_FILL_X | LAYOUT_FILL_Y);
+  FXSplitter *splitter = new FXSplitter(this, LAYOUT_FILL_X | LAYOUT_FILL_Y);
 
   FXVerticalFrame *srvFrame = new FXVerticalFrame(splitter, FRAME_SUNKEN | FRAME_THICK |
       LAYOUT_FILL_X | LAYOUT_FILL_Y, 0,0, 200,0, 0,0,0,0);
-  queryFrame = new FXVerticalFrame(splitter, FRAME_SUNKEN|FRAME_THICK|LAYOUT_FILL_X|LAYOUT_FILL_Y);
+  queryFrame = new FXVerticalFrame(splitter, FRAME_SUNKEN|FRAME_THICK|LAYOUT_FILL_X|LAYOUT_FILL_Y, 0, 0, 0, 0, 0, 0, 0, 0);
 //  queryFrame->setBackColor(FXRGB(128,128,128));
 
-#if 1
   treeList = new FXTreeList(srvFrame, nullptr, 0, LAYOUT_FILL_Y | LAYOUT_FILL_X | TREELIST_SINGLESELECT | TREELIST_SHOWS_LINES | TREELIST_SHOWS_BOXES,
         0, 0, 200, 0);
 
   // Populate tree view with a root item
   FXTreeItem *rootItem = new FXTreeItem("SQL Connections");
   treeList->appendItem(nullptr, rootItem);
-#endif
-#if 1
+
+#if 0
   // Create the tab book on the right
   tabBook = new FXTabBook(queryFrame, nullptr, 0, LAYOUT_FILL_X | LAYOUT_FILL_Y);
   new FXTabItem(tabBook, "Testing", NULL);
-#endif
   // Initial empty tab
   FXHorizontalFrame *frame = new FXHorizontalFrame(tabBook, FRAME_THICK|FRAME_RAISED);
   new FXText(frame, nullptr, 0, LAYOUT_FILL_X | LAYOUT_FILL_Y);
+#endif
 
 }
 
@@ -149,26 +150,115 @@ long QueryTool::OnCommandQuit(FXObject*, FXSelector, void*)
 
 long QueryTool::OnCommandTestQuery(FX::FXObject *, FX::FXSelector, void *)
 {
-  printf("Please work!\n");
-  FXTabItem *blah = new FXTabItem(tabBook, "Additional tab", NULL);
-#if 0
+#if 1
   FXTabItem *newTab;
   if (tabBook == nullptr) {
     tabBook = new FXTabBook(queryFrame, nullptr, 0, LAYOUT_FILL_X | LAYOUT_FILL_Y);
-    new FXTabItem(tabBook, "Brand new", NULL);
+    tabBook->create();
+    newTab = new FXTabItem(tabBook, "Brand new", NULL);
   } else {
-    new FXTabItem(tabBook, "Additional tab", NULL);
+    newTab = new FXTabItem(tabBook, "Additional tab", NULL);
   }
 #endif
+  newTab->create();
+  newTab->show();
+
   FXHorizontalFrame *frame = new FXHorizontalFrame(tabBook, FRAME_THICK|FRAME_RAISED);
-  new FXText(frame, nullptr, 0, LAYOUT_FILL_X | LAYOUT_FILL_Y);
 
-  printf("%d\n", blah->shown());
+  // if query executed
+  FXSplitter *splitter = new FXSplitter(frame, SPLITTER_VERTICAL | LAYOUT_FILL_X | LAYOUT_FILL_Y);
+  FXVerticalFrame *queryTextFrame = new FXVerticalFrame(splitter, FRAME_SUNKEN | FRAME_THICK |
+      LAYOUT_FILL_X | LAYOUT_FILL_Y, 0,0, 0, 0, 0,0,0,0);
+  FXText *text = new FXText(queryTextFrame, nullptr, 0, LAYOUT_FILL_X | LAYOUT_FILL_Y);
+//  FXText *text2 = new FXText(splitter, nullptr, 0, LAYOUT_FILL_X | LAYOUT_FILL_Y);
 
-  blah->create();
+  frame->create();
+  splitter->create();
+  queryTextFrame->create();
+  text->create();
+//  text2->create();
+
+
+//  printf("%d\n", blah->shown());
+
 //  frame->create();
-  blah->show();
   tabBook->recalc();
   return 1;
 }
 
+long QueryTool::OnCommandTestQueryTable(FX::FXObject *, FX::FXSelector, void *)
+{
+#if 1
+  FXTabItem *newTab;
+  if (tabBook == nullptr) {
+    tabBook = new FXTabBook(queryFrame, nullptr, 0, LAYOUT_FILL_X | LAYOUT_FILL_Y);
+    tabBook->create();
+    newTab = new FXTabItem(tabBook, "Brand new", NULL);
+  } else {
+    newTab = new FXTabItem(tabBook, "Additional tab", NULL);
+  }
+#endif
+  newTab->create();
+  newTab->show();
+
+  FXHorizontalFrame *frame = new FXHorizontalFrame(tabBook, FRAME_THICK|FRAME_RAISED);
+
+  // if query executed
+  FXSplitter *splitter = new FXSplitter(frame, SPLITTER_VERTICAL | LAYOUT_FILL_X | LAYOUT_FILL_Y);
+  FXVerticalFrame *queryTextFrame = new FXVerticalFrame(splitter, FRAME_SUNKEN | FRAME_THICK |
+      LAYOUT_FILL_X | LAYOUT_FILL_Y, 0,0, 0, 0, 0,0,0,0);
+  FXText *text = new FXText(queryTextFrame, nullptr, 0, LAYOUT_FILL_X | LAYOUT_FILL_Y);
+  FXVerticalFrame *queryTableFrame = new FXVerticalFrame(splitter, FRAME_SUNKEN | FRAME_THICK |
+      LAYOUT_FILL_X | LAYOUT_FILL_Y, 0,0, 0, 0, 0,0,0,0);
+//  FXText *text2 = new FXText(splitter, nullptr, 0, LAYOUT_FILL_X | LAYOUT_FILL_Y);
+  FXTable *table=new FXTable(queryTableFrame,nullptr,0,TABLE_COL_SIZABLE|TABLE_ROW_SIZABLE|LAYOUT_FILL_X|LAYOUT_FILL_Y,0,0,0,0, 2,2,2,2);
+
+    table->setVisibleRows(20);
+  table->setVisibleColumns(8);
+//  table->setRowHeaderMode(0);
+  table->setTableSize(50,14);
+  table->setBackColor(FXRGB(255,255,255));
+  table->setCellColor(0,0,FXRGB(255,255,255));
+  table->setCellColor(0,1,FXRGB(255,240, 240));
+  table->setCellColor(1,0,FXRGB(240, 255, 240));
+  table->setCellColor(1,1,FXRGB(240, 240, 255));
+  table->setHelpText("Editable table.");
+
+//  table->setRowRenumbering(FXHeader::decimalNumbering);
+//  table->setColumnRenumbering(FXHeader::alphaNumbering);
+
+  int r, c;
+  // Initialize scrollable part of table
+  for(r=0; r<50; r++){
+    for(c=0; c<14; c++){
+      table->setItemText(r,c,"r:"+FXStringVal(r)+" c:"+FXStringVal(c));
+      }
+    }
+
+  // Initialize column headers
+  for(c=0; c<12; c++){
+    table->setColumnText(c, "col" + FXStringVal(c));
+    }
+
+  // Initialize row headers
+  for(r=0; r<50; r++){
+    table->setRowText(r,"Row"+FXStringVal(r));
+    }
+
+
+
+  frame->create();
+  splitter->create();
+  queryTextFrame->create();
+  text->create();
+  queryTableFrame->create();
+  table->create();
+//  text2->create();
+
+
+//  printf("%d\n", blah->shown());
+
+//  frame->create();
+  tabBook->recalc();
+  return 1;
+}

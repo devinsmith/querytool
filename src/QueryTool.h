@@ -30,7 +30,8 @@ public:
     ID_CONNECT,
     ID_DISCONNECT,
     ID_PREFERENCES,
-    ID_TEST_QUERY
+    ID_TEST_QUERY,
+    ID_TEST_QUERY_TABLE
   };
 
   void create();
@@ -41,6 +42,7 @@ public:
   long OnCommandPreferences(FXObject*, FXSelector, void*);
   long OnCommandQuit(FXObject*, FXSelector, void*);
   long OnCommandTestQuery(FXObject*, FXSelector, void*);
+  long OnCommandTestQueryTable(FXObject*, FXSelector, void*);
 private:
   QueryTool() = default;
 
@@ -68,6 +70,7 @@ private:
 
   // Tests
   FXMenuCommand *m_test_show_query;
+  FXMenuCommand *m_test_show_query_table;
 };
 
 #endif // QUERYTOOL_H
