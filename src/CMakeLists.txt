@@ -8,6 +8,8 @@ find_package(FOX REQUIRED)
 # C and C++ sources are freely mixed.
 set(SOURCES
   main.cpp
+  QueryTabItem.cpp
+  QueryTabItem.h
   QueryTool.cpp
   QueryTool.h
 )

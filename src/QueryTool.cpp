@@ -19,6 +19,7 @@
 #include <FXICOIcon.h>
 
 #include "QueryTool.h"
+#include "QueryTabItem.h"
 
 FXDEFMAP(QueryTool) queryToolMap[] = {
   FXMAPFUNC(SEL_COMMAND, QueryTool::ID_ABOUT, QueryTool::OnCommandAbout),
@@ -189,18 +190,19 @@ long QueryTool::OnCommandTestQuery(FX::FXObject *, FX::FXSelector, void *)
 long QueryTool::OnCommandTestQueryTable(FX::FXObject *, FX::FXSelector, void *)
 {
 #if 1
-  FXTabItem *newTab;
+  QueryTabItem *newTab;
   if (tabBook == nullptr) {
     tabBook = new FXTabBook(queryFrame, nullptr, 0, LAYOUT_FILL_X | LAYOUT_FILL_Y);
     tabBook->create();
-    newTab = new FXTabItem(tabBook, "Brand new", NULL);
+    newTab = new QueryTabItem(tabBook, "Brand new");
   } else {
-    newTab = new FXTabItem(tabBook, "Additional tab", NULL);
+    newTab = new QueryTabItem(tabBook, "Additional tab");
   }
 #endif
   newTab->create();
   newTab->show();
 
+#if 0
   FXHorizontalFrame *frame = new FXHorizontalFrame(tabBook, FRAME_THICK|FRAME_RAISED);
 
   // if query executed
@@ -213,9 +215,13 @@ long QueryTool::OnCommandTestQueryTable(FX::FXObject *, FX::FXSelector, void *)
 //  FXText *text2 = new FXText(splitter, nullptr, 0, LAYOUT_FILL_X | LAYOUT_FILL_Y);
   FXTable *table=new FXTable(queryTableFrame,nullptr,0,TABLE_COL_SIZABLE|TABLE_ROW_SIZABLE|LAYOUT_FILL_X|LAYOUT_FILL_Y,0,0,0,0, 2,2,2,2);
 
-    table->setVisibleRows(20);
+  table->setVisibleRows(20);
   table->setVisibleColumns(8);
-//  table->setRowHeaderMode(0);
+
+  // Remove row header
+  table->setRowHeaderMode(LAYOUT_FIX_WIDTH);
+  table->setRowHeaderWidth(0);
+
   table->setTableSize(50,14);
   table->setBackColor(FXRGB(255,255,255));
   table->setCellColor(0,0,FXRGB(255,255,255));
@@ -241,9 +247,11 @@ long QueryTool::OnCommandTestQueryTable(FX::FXObject *, FX::FXSelector, void *)
     }
 
   // Initialize row headers
+#if 1
   for(r=0; r<50; r++){
-    table->setRowText(r,"Row"+FXStringVal(r));
+    table->setRowText(r,FXStringVal(r));
     }
+#endif
 
 
 
@@ -259,6 +267,7 @@ long QueryTool::OnCommandTestQueryTable(FX::FXObject *, FX::FXSelector, void *)
 //  printf("%d\n", blah->shown());
 
 //  frame->create();
+#endif
   tabBook->recalc();
   return 1;
 }
