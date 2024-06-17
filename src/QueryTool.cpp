@@ -26,6 +26,7 @@ FXDEFMAP(QueryTool) queryToolMap[] = {
   FXMAPFUNC(SEL_COMMAND, QueryTool::ID_CONNECT, QueryTool::OnCommandConnect),
   FXMAPFUNC(SEL_COMMAND, QueryTool::ID_PREFERENCES, QueryTool::OnCommandPreferences),
   FXMAPFUNC(SEL_COMMAND, QueryTool::ID_QUIT, QueryTool::OnCommandQuit),
+  FXMAPFUNC(SEL_COMMAND, QueryTool::ID_QUERY_RUN, QueryTool::OnCommandQueryRun),
   FXMAPFUNC(SEL_COMMAND, QueryTool::ID_TEST_QUERY, QueryTool::OnCommandTestQuery),
   FXMAPFUNC(SEL_COMMAND, QueryTool::ID_TEST_QUERY_TABLE, QueryTool::OnCommandTestQueryTable)
 };
@@ -54,16 +55,21 @@ QueryTool::QueryTool(FXApp *app) :
   m_edit_pref = new FXMenuCommand(menuPanes[1], "&Preferences", nullptr, this, ID_PREFERENCES);
   menuTitle[1] = new FXMenuTitle(menuBar, "&Edit", nullptr, menuPanes[1]);
 
-  // Help menu
+  // Query menu
   menuPanes[2] = new FXMenuPane(this);
-  m_help_about = new FXMenuCommand(menuPanes[2], "&About...", nullptr, this, ID_ABOUT);
-  menuTitle[2] = new FXMenuTitle(menuBar, "&Help", nullptr, menuPanes[2]);
+  m_query_run = new FXMenuCommand(menuPanes[2], "Run Query\tF5", nullptr, this, ID_QUERY_RUN);
+  menuTitle[2] = new FXMenuTitle(menuBar, "Query", nullptr, menuPanes[2]);
+
+  // Help menu
+  menuPanes[3] = new FXMenuPane(this);
+  m_help_about = new FXMenuCommand(menuPanes[3], "&About...", nullptr, this, ID_ABOUT);
+  menuTitle[3] = new FXMenuTitle(menuBar, "&Help", nullptr, menuPanes[3]);
 
   // Test menu
-  menuPanes[3] = new FXMenuPane(this);
-  m_test_show_query = new FXMenuCommand(menuPanes[3], "Show test query", nullptr, this, ID_TEST_QUERY);
-  m_test_show_query_table = new FXMenuCommand(menuPanes[3], "Show test query table", nullptr, this, ID_TEST_QUERY_TABLE);
-  menuTitle[3] = new FXMenuTitle(menuBar, "&Test", nullptr, menuPanes[3]);
+  menuPanes[4] = new FXMenuPane(this);
+  m_test_show_query = new FXMenuCommand(menuPanes[4], "Show test query", nullptr, this, ID_TEST_QUERY);
+  m_test_show_query_table = new FXMenuCommand(menuPanes[4], "Show test query table", nullptr, this, ID_TEST_QUERY_TABLE);
+  menuTitle[4] = new FXMenuTitle(menuBar, "&Test", nullptr, menuPanes[4]);
 
   FXSplitter *splitter = new FXSplitter(this, LAYOUT_FILL_X | LAYOUT_FILL_Y);
 
@@ -146,6 +152,12 @@ long QueryTool::OnCommandPreferences(FXObject*, FXSelector, void*)
 long QueryTool::OnCommandQuit(FXObject*, FXSelector, void*)
 {
   getApp()->exit(0);
+  return 1;
+}
+
+long QueryTool::OnCommandQueryRun(FXObject*, FXSelector, void*)
+{
+  printf("Running a query...\n");
   return 1;
 }
 

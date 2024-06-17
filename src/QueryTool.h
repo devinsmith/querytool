@@ -30,6 +30,7 @@ public:
     ID_CONNECT,
     ID_DISCONNECT,
     ID_PREFERENCES,
+    ID_QUERY_RUN,
     ID_TEST_QUERY,
     ID_TEST_QUERY_TABLE
   };
@@ -43,6 +44,7 @@ public:
   long OnCommandQuit(FXObject*, FXSelector, void*);
   long OnCommandTestQuery(FXObject*, FXSelector, void*);
   long OnCommandTestQueryTable(FXObject*, FXSelector, void*);
+  long OnCommandQueryRun(FXObject*, FXSelector, void*);
 private:
   QueryTool() = default;
 
@@ -51,8 +53,8 @@ private:
 
   FXVerticalFrame *queryFrame;
 
-  FXMenuPane *menuPanes[4];
-  FXMenuTitle *menuTitle[4];
+  FXMenuPane *menuPanes[5];
+  FXMenuTitle *menuTitle[5];
 
   FXMenuBar *menuBar;
 
@@ -64,6 +66,9 @@ private:
 
   // Edit
   FXMenuCommand *m_edit_pref;
+
+  // Query
+  FXMenuCommand *m_query_run;
 
   // Help
   FXMenuCommand *m_help_about;
