@@ -17,6 +17,7 @@ set(SOURCES
   QueryTabItem.cpp QueryTabItem.h
   QueryTool.cpp QueryTool.h
   Server.h
+  ServerEditDlg.cpp ServerEditDlg.h
 )
 
 add_executable(${TARGET_NAME} ${SOURCES})
