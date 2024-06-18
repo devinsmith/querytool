@@ -14,25 +14,43 @@
 // OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 //
 
-#include <fx.h>
+#include <pwd.h>
+#include <unistd.h>
+#include <sys/stat.h>
+#include <cerrno>
 
 #include "Config.h"
-#include "QueryTool.h"
 
-int main(int argc, char *argv[])
+static bool config_mkdir(const char *path)
 {
-  if (!Config::instance().load()) {
-    // An error is issued from Config::load
-    return -1;
+  struct stat st;
+
+  if (stat(path, &st) != 0) {
+    if (mkdir(path, 0700) != 0) {
+      fprintf(stderr, "Error: mkdir %s: %s\n", path, strerror(errno));
+      return false;
+    }
+  } else {
+    if (!S_ISDIR(st.st_mode)) {
+      fprintf(stderr, "Error: %s is not a directory\n", path);
+      return false;
+    }
+  }
+  return true;
+}
+
+bool Config::load()
+{
+  // Determine home directory.
+  const struct passwd *pw = getpwuid(getuid());
+  if (pw == nullptr) {
+    fprintf(stderr, "Fatal: Can't get your user info!\n");
+    return false;
   }
 
-  FXApp app("querytool", "drs");
-  app.init(argc, argv);
+  _conf_dir = pw->pw_dir;
+  _conf_dir += "/.querytool";
 
-  new QueryTool(&app); // Deleted by FXTopWindow::Close
-  app.create();
-
-  app.run();
-
-  return 0;
+  return config_mkdir(_conf_dir.text());
 }
+

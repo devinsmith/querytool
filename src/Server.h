@@ -14,25 +14,22 @@
 // OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 //
 
+
+#ifndef SERVER_H
+#define SERVER_H
+
 #include <fx.h>
 
-#include "Config.h"
-#include "QueryTool.h"
+struct Server {
+  FXString name;
+  FXString server;
+  int port;
+  FXString instance;
+  FXString user;
+  FXString password;
+  FXString default_database;
 
-int main(int argc, char *argv[])
-{
-  if (!Config::instance().load()) {
-    // An error is issued from Config::load
-    return -1;
-  }
+  bool connected{false};
+};
 
-  FXApp app("querytool", "drs");
-  app.init(argc, argv);
-
-  new QueryTool(&app); // Deleted by FXTopWindow::Close
-  app.create();
-
-  app.run();
-
-  return 0;
-}
+#endif // SERVER_H

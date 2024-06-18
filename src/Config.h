@@ -14,25 +14,28 @@
 // OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 //
 
+#ifndef CONFIG_H
+#define CONFIG_H
+
 #include <fx.h>
 
-#include "Config.h"
-#include "QueryTool.h"
-
-int main(int argc, char *argv[])
-{
-  if (!Config::instance().load()) {
-    // An error is issued from Config::load
-    return -1;
+class Config {
+public:
+  static Config& instance()
+  {
+    static Config inst;
+    return inst;
   }
 
-  FXApp app("querytool", "drs");
-  app.init(argc, argv);
+  bool load();
+  const FXString& dir() { return _conf_dir; }
 
-  new QueryTool(&app); // Deleted by FXTopWindow::Close
-  app.create();
+private:
+  Config() = default;
+  Config(const Config&) = delete;
+  void operator=(const Config&) = delete;
 
-  app.run();
+  FXString _conf_dir;
+};
 
-  return 0;
-}
+#endif // CONFIG_H

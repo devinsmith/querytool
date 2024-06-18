@@ -3,14 +3,13 @@ A simple GUI based SQL query tool
 
 # Dependencies
 
-The application is dependent on a fairly obscure UI toolkit called FOX.
-However, it is likely packaged for your distribution. See
-[repology](https://repology.org/project/fox-toolkit/versions) for details.
+* FOX Toolkit [repology](https://repology.org/project/fox-toolkit/versions)
+* cJSON [repology](https://repology.org/project/cjson/versions)
 
 On Debian based distros you can install the dependencies with apt-get:
 
 ```
-sudo apt-get install libfox-1.6-dev
+sudo apt-get install libfox-1.6-dev libcjson-dev
 ```
 
 # Building
