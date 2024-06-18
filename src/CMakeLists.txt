@@ -18,6 +18,8 @@ set(SOURCES
   QueryTool.cpp QueryTool.h
   Server.h
   ServerEditDlg.cpp ServerEditDlg.h
+  ServerTreeList.cpp ServerTreeList.h
+  icons/root.xpm icons/server.xpm
 )
 
 add_executable(${TARGET_NAME} ${SOURCES})

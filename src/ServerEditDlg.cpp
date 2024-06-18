@@ -14,9 +14,6 @@
 // OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 //
 
-
-#include <fxkeys.h>
-
 #include "ServerEditDlg.h"
 
 FXDEFMAP(ServerEditDialog) ServerEditDialogMap[] = {
@@ -100,32 +97,36 @@ ServerEditDialog::~ServerEditDialog()
 long ServerEditDialog::OnAccept(FXObject*, FXSelector, void*)
 {
   bool anyError = false;
-  m_name_lbl->setTextColor(FXRGB(0, 0, 0));
-  m_hostname_lbl->setTextColor(FXRGB(0, 0, 0));
-  m_username_lbl->setTextColor(FXRGB(0, 0, 0));
-  m_password_lbl->setTextColor(FXRGB(0, 0, 0));
+  FXColor red = FXRGB(255, 0, 0);
+  FXColor black = FXRGB(0, 0, 0);
+
+  m_name_lbl->setTextColor(black);
+  m_hostname_lbl->setTextColor(black);
+  m_username_lbl->setTextColor(black);
+  m_password_lbl->setTextColor(black);
+
 
   if (m_name->getText().trim().empty()) {
     anyError = true;
-    m_name_lbl->setTextColor(FXRGB(255, 0, 0));
+    m_name_lbl->setTextColor(red);
     m_name->setText("");
   }
 
   if (m_hostname->getText().trim().empty()) {
     anyError = true;
-    m_hostname_lbl->setTextColor(FXRGB(255, 0, 0));
+    m_hostname_lbl->setTextColor(red);
     m_hostname->setText("");
   }
 
   if (m_username->getText().trim().empty()) {
     anyError = true;
-    m_username_lbl->setTextColor(FXRGB(255, 0, 0));
+    m_username_lbl->setTextColor(red);
     m_username->setText("");
   }
 
   if (m_password->getText().trim().empty()) {
     anyError = true;
-    m_password_lbl->setTextColor(FXRGB(255, 0, 0));
+    m_password_lbl->setTextColor(red);
     m_password->setText("");
   }
 

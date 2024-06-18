@@ -78,22 +78,7 @@ QueryTool::QueryTool(FXApp *app) :
   queryFrame = new FXVerticalFrame(splitter, FRAME_SUNKEN|FRAME_THICK|LAYOUT_FILL_X|LAYOUT_FILL_Y, 0, 0, 0, 0, 0, 0, 0, 0);
 //  queryFrame->setBackColor(FXRGB(128,128,128));
 
-  treeList = new FXTreeList(srvFrame, nullptr, 0, LAYOUT_FILL_Y | LAYOUT_FILL_X | TREELIST_SINGLESELECT | TREELIST_SHOWS_LINES | TREELIST_SHOWS_BOXES,
-        0, 0, 200, 0);
-
-  // Populate tree view with a root item
-  FXTreeItem *rootItem = new FXTreeItem("SQL Connections");
-  treeList->appendItem(nullptr, rootItem);
-
-#if 0
-  // Create the tab book on the right
-  tabBook = new FXTabBook(queryFrame, nullptr, 0, LAYOUT_FILL_X | LAYOUT_FILL_Y);
-  new FXTabItem(tabBook, "Testing", NULL);
-  // Initial empty tab
-  FXHorizontalFrame *frame = new FXHorizontalFrame(tabBook, FRAME_THICK|FRAME_RAISED);
-  new FXText(frame, nullptr, 0, LAYOUT_FILL_X | LAYOUT_FILL_Y);
-#endif
-
+  treeList = new ServerTreeList(srvFrame);
 }
 
 QueryTool::~QueryTool()
