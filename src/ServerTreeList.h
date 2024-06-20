@@ -44,6 +44,7 @@ public:
   long OnCmdTreeRightClick(FXObject*, FXSelector, void*);
   long OnAddNewServer(FXObject*, FXSelector, void*);
   long OnEditServer(FXObject*, FXSelector, void*);
+  long OnDeleteServer(FXObject*, FXSelector, void*);
 private:
   ServerTreeList() = default;
 

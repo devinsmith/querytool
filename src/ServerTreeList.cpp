@@ -30,7 +30,8 @@ FXDEFMAP(ServerTreeList) stlEventMap[] = {
   FXMAPFUNC(SEL_LEFTBUTTONPRESS, ServerTreeList::ID_REQUEST_TREE, ServerTreeList::OnCmdTreeLeftClick),
   FXMAPFUNC(SEL_RIGHTBUTTONPRESS, ServerTreeList::ID_REQUEST_TREE, ServerTreeList::OnCmdTreeRightClick),
   FXMAPFUNC(SEL_COMMAND, ServerTreeList::ID_NEW, ServerTreeList::OnAddNewServer),
-  FXMAPFUNC(SEL_COMMAND, ServerTreeList::ID_EDIT, ServerTreeList::OnEditServer)
+  FXMAPFUNC(SEL_COMMAND, ServerTreeList::ID_EDIT, ServerTreeList::OnEditServer),
+  FXMAPFUNC(SEL_COMMAND, ServerTreeList::ID_DELETE, ServerTreeList::OnDeleteServer)
 };
 
 FXIMPLEMENT(ServerTreeList, FXTreeList, stlEventMap, ARRAYNUMBER(stlEventMap))
@@ -134,6 +135,27 @@ long ServerTreeList::OnEditServer(FX::FXObject *, FX::FXSelector, void *)
 
     updateItem(item);
   }
+  return 1;
+}
+
+long ServerTreeList::OnDeleteServer(FX::FXObject *, FX::FXSelector, void *)
+{
+  // Get selected item:
+  FXTreeItem *item = getCurrentItem();
+  Server *server = nullptr;
+  if (item != nullptr) {
+    server = static_cast<Server *>(item->getData());
+  }
+
+  for (std::list<Server>::iterator it = ServerList.begin(); it != ServerList.end();) {
+    if (&(*it) == server) {
+      it = ServerList.erase(it);
+    } else {
+      it++;
+    }
+  }
+
+  removeItem(item);
   return 1;
 }
 
