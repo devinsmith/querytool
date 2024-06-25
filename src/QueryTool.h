@@ -19,6 +19,7 @@
 
 #include <fx.h>
 
+#include "QueryTabBook.h"
 #include "ServerTreeList.h"
 
 class QueryTool : public FXMainWindow {
@@ -50,7 +51,7 @@ public:
 private:
   QueryTool() = default;
 
-  FXTabBook *tabBook;
+  QueryTabBook *tabBook;
   ServerTreeList *treeList;
 
   FXVerticalFrame *queryFrame;

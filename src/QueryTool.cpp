@@ -77,6 +77,7 @@ QueryTool::QueryTool(FXApp *app) :
       LAYOUT_FILL_X | LAYOUT_FILL_Y, 0,0, 200,0, 0,0,0,0);
   queryFrame = new FXVerticalFrame(splitter, FRAME_SUNKEN|FRAME_THICK|LAYOUT_FILL_X|LAYOUT_FILL_Y, 0, 0, 0, 0, 0, 0, 0, 0);
 //  queryFrame->setBackColor(FXRGB(128,128,128));
+  tabBook = new QueryTabBook(queryFrame);
 
   treeList = new ServerTreeList(srvFrame);
 }
@@ -148,19 +149,21 @@ long QueryTool::OnCommandQueryRun(FXObject*, FXSelector, void*)
 
 long QueryTool::OnCommandTestQuery(FX::FXObject *, FX::FXSelector, void *)
 {
-#if 1
-  FXTabItem *newTab;
+  tabBook->AddTab();
+#if 0
+  QueryTabItem *newTab;
   if (tabBook == nullptr) {
-    tabBook = new FXTabBook(queryFrame, nullptr, 0, LAYOUT_FILL_X | LAYOUT_FILL_Y);
+//    tabBook = new FXTabBook(queryFrame, nullptr, 0, LAYOUT_FILL_X | LAYOUT_FILL_Y);
     tabBook->create();
-    newTab = new FXTabItem(tabBook, "Brand new", NULL);
+    newTab = new QueryTabItem(tabBook, "Brand new");
   } else {
-    newTab = new FXTabItem(tabBook, "Additional tab", NULL);
+    newTab = new QueryTabItem(tabBook, "Additional tab");
   }
-#endif
   newTab->create();
   newTab->show();
+#endif
 
+#if 0
   FXHorizontalFrame *frame = new FXHorizontalFrame(tabBook, FRAME_THICK|FRAME_RAISED);
 
   // if query executed
@@ -180,24 +183,26 @@ long QueryTool::OnCommandTestQuery(FX::FXObject *, FX::FXSelector, void *)
 //  printf("%d\n", blah->shown());
 
 //  frame->create();
+#endif
   tabBook->recalc();
   return 1;
 }
 
 long QueryTool::OnCommandTestQueryTable(FX::FXObject *, FX::FXSelector, void *)
 {
-#if 1
+  tabBook->AddTab();
+#if 0
   QueryTabItem *newTab;
   if (tabBook == nullptr) {
-    tabBook = new FXTabBook(queryFrame, nullptr, 0, LAYOUT_FILL_X | LAYOUT_FILL_Y);
+    //tabBook = new FXTabBook(queryFrame, nullptr, 0, LAYOUT_FILL_X | LAYOUT_FILL_Y);
     tabBook->create();
     newTab = new QueryTabItem(tabBook, "Brand new");
   } else {
     newTab = new QueryTabItem(tabBook, "Additional tab");
   }
-#endif
   newTab->create();
   newTab->show();
+#endif
 
 #if 0
   FXHorizontalFrame *frame = new FXHorizontalFrame(tabBook, FRAME_THICK|FRAME_RAISED);

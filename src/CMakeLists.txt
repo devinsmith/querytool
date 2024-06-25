@@ -14,6 +14,7 @@ pkg_check_modules(libcjson libcjson REQUIRED)
 set(SOURCES
   Config.cpp Config.h
   main.cpp
+  QueryTabBook.cpp QueryTabBook.h
   QueryTabItem.cpp QueryTabItem.h
   QueryTool.cpp QueryTool.h
   Server.h
