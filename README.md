@@ -5,11 +5,12 @@ A simple GUI based SQL query tool
 
 * FOX Toolkit [repology](https://repology.org/project/fox-toolkit/versions)
 * cJSON [repology](https://repology.org/project/cjson/versions)
+* FreeTDS
 
 On Debian based distros you can install the dependencies with apt-get:
 
 ```
-sudo apt-get install libfox-1.6-dev libcjson-dev
+sudo apt-get install libfox-1.6-dev libcjson-dev freetds-dev
 ```
 
 # Building

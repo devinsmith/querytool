@@ -5,6 +5,7 @@ set(TARGET_NAME querytool)
 
 find_package(FOX REQUIRED)
 find_package(PkgConfig REQUIRED)
+find_package(FreeTDS REQUIRED)
 
 # We cannot be sure cJSON is available as a CMake module, so fall back to pkg-config
 #find_package(cjson REQUIRED)
@@ -25,9 +26,9 @@ set(SOURCES
 
 add_executable(${TARGET_NAME} ${SOURCES})
 
-target_include_directories(${TARGET_NAME} PRIVATE ${FOX_INCLUDE_DIR} ${libcjson_INCLUDE_DIRS})
+target_include_directories(${TARGET_NAME} PRIVATE ${FOX_INCLUDE_DIR} ${libcjson_INCLUDE_DIRS} ${FreeTDS_INCLUDE_DIR})
 set_target_properties(${TARGET_NAME} PROPERTIES COMPILE_FLAGS ${FOX_CXX_FLAGS})
-target_link_libraries(${TARGET_NAME} PRIVATE ${OPENSSL_LIBRARIES} ${FOX_LIBRARY} ${libcjson_LIBRARIES})
+target_link_libraries(${TARGET_NAME} PRIVATE ${OPENSSL_LIBRARIES} ${FOX_LIBRARY} ${libcjson_LIBRARIES} ${FreeTDS_LIBRARIES})
 
 if(MSVC)
   #  target_compile_options(${TARGET_NAME} PRIVATE /W4 /WX)
