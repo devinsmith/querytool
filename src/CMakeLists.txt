@@ -21,6 +21,7 @@ set(SOURCES
   Server.h
   ServerEditDlg.cpp ServerEditDlg.h
   ServerTreeList.cpp ServerTreeList.h
+  SqlConnection.cpp SqlConnection.h
   icons/root.xpm icons/server.xpm
 )
 
