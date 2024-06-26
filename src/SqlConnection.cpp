@@ -19,11 +19,11 @@
 #include <stdexcept>
 
 // FreeTDS stuff
-#define MSDBLIB 1
-#include <sqlfront.h>
-#include <sybdb.h>
 
 #include "SqlConnection.h"
+
+// Global context
+static TDSCONTEXT *context;
 
 namespace tds {
 
@@ -32,22 +32,23 @@ static void (*g_log_func)(int level, const char *msg) = nullptr;
 // Sadly, FreeTDS does not seem to check the return value of this message
 // handler.
 extern "C" int
-sql_db_msg_handler(DBPROCESS * dbproc, DBINT msgno, int msgstate,
-    int severity, char *msgtext, char *srvname, char *procname, int line)
+sql_db_msg_handler(const TDSCONTEXT *context, TDSSOCKET *tds, const TDSMESSAGE *msg)
 {
-  if (msgno == 5701 || msgno == 5703 || msgno == 5704)
+  if (msg->msgno == 5701 || msg->msgno == 5703 || msg->msgno == 5704)
     return 0;
 
-
+#if 0
   if (auto *conn = reinterpret_cast<SqlConnection *>(dbgetuserdata(dbproc)); conn != nullptr) {
     return conn->MsgHandler(dbproc, msgno, msgstate, severity, msgtext, srvname,
         procname, line);
   }
+#endif
 
   // No connection associated??
   return 0;
 }
 
+#if 0
 int SqlConnection::MsgHandler(DBPROCESS * dbproc, DBINT msgno, int msgstate,
     int severity, char *msgtext, char *srvname, char *procname, int line)
 {
@@ -126,14 +127,19 @@ int SqlConnection::MsgHandler(DBPROCESS * dbproc, DBINT msgno, int msgstate,
 
   return severity > 0;
 }
+#endif
 
 extern "C" int
-sql_db_err_handler(DBPROCESS *dbproc, int severity, int dberr,
-    int oserr, char *dberrstr, char *oserrstr)
+sql_db_err_handler(const TDSCONTEXT *context, TDSSOCKET *tds, const TDSMESSAGE *msg)
 {
+  fprintf(stderr, "Error %d (severity %d):\n\t%s\n", msg->msgno, msg->severity,
+          msg->message);
+  if (msg->oserr != 0) {
+    fprintf(stderr, "\tOS error %d, \"%s\"\n", msg->oserr, strerror(msg->oserr));
+  }
   // For server messages, cancel the query and rely on the
   // message handler to capture the appropriate error message.
-  return INT_CANCEL;
+  return TDS_INT_CANCEL;
 }
 
 void sql_log(int level, const char *msg)
@@ -146,20 +152,33 @@ void sql_log(int level, const char *msg)
 // FreeTDS DBLib requires some initialization.
 void sql_startup(void (*log_func)(int, const char *))
 {
-  dbinit();
+  context = tds_alloc_context(nullptr);
+  if (context == nullptr) {
+    fprintf(stderr, "context cannot be null\n");
+    return;
+  }
 
-  dbmsghandle(sql_db_msg_handler);
-  dberrhandle(sql_db_err_handler);
+  if (context->locale && !context->locale->date_fmt) {
+    context->locale->date_fmt = strdup("");
+  }
+  context->msg_handler = sql_db_msg_handler;
+  context->err_handler = sql_db_err_handler;
 
-  dbsetlogintime(5);
+  //dbinit();
+
+  //dbmsghandle(sql_db_msg_handler);
+  //dberrhandle(sql_db_err_handler);
+
+  //dbsetlogintime(5);
   g_log_func = log_func;
 }
 
 void sql_shutdown()
 {
-  dbexit();
+  //dbexit();
 }
 
+#if 0
 SqlConnection::~SqlConnection()
 {
   Disconnect();
@@ -482,5 +501,6 @@ std::vector<std::string> SqlConnection::GetAllColumnNames()
 
   return columns;
 }
+#endif
 
 }

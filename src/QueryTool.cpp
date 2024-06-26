@@ -135,11 +135,13 @@ long QueryTool::OnServerListConnect(FXObject*, FXSelector, void *data)
   // We need to make sure we can make a connection before creating a query tab.
   printf("Making connection to %s\n", server->server.text());
 
+#if 0
   auto *connection = new tds::SqlConnection(*server);
   if (! connection->Connect()) {
    FXMessageBox::error(this, MBOX_OK, "QueryTool", "Failed to connect to SQL Server");
    return 1;
   }
+#endif
 
   return 1;
 }

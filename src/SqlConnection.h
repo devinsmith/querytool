@@ -20,13 +20,13 @@
 #include <string>
 #include <vector>
 
-#include <sqlfront.h>
-#include <sybdb.h>
+#include "tds/include/freetds/tds.h"
 
 #include "Server.h"
 
 namespace tds {
 
+#if 0
 class SqlConnection {
 public:
   explicit SqlConnection(const Server& serverInfo) :
@@ -77,19 +77,22 @@ public:
   bool IsNullCol(int col);
 
   // FreeTDS callback helper
+#if 0
   int MsgHandler(DBPROCESS * dbproc, DBINT msgno, int msgstate,
     int severity, char *msgtext, char *srvname, char *procname, int line);
+#endif
 
 private:
   void run_initial_query();
   static std::string fix_server(const char *str);
 
   const Server& _serverInfo;
-  DBPROCESS *_dbHandle;
+  TDSLOGIN *_dbHandle;
   bool _fetched_rows;
   bool _fetched_results;
   std::string _error;
 };
+#endif
 
 void sql_startup(void (*log_func)(int, const char *));
 void sql_shutdown();

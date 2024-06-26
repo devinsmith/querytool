@@ -22,6 +22,10 @@
 
 int main(int argc, char *argv[])
 {
+  // By default, programs start in the "C" locale, set to "" to prefer
+  // the user-preferred locale.
+  setlocale(LC_ALL, "");
+
   if (!Config::instance().load()) {
     // An error is issued from Config::load
     return -1;
