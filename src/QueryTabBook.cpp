@@ -27,7 +27,7 @@ QueryTabBook::QueryTabBook(FXComposite *parent) :
 {
 }
 
-void QueryTabBook::AddTab()
+void QueryTabBook::AddTab(const Server& serverInfo)
 {
   QueryTabItem *newTab;
 

@@ -18,11 +18,15 @@
 #include <fstream>
 #include <sstream>
 #include <cstdio>
+
 #include "Config.h"
 #include "ServerEditDlg.h"
 #include "ServerTreeList.h"
+#include "SqlConnection.h"
+
 #include "icons/root.xpm"
 #include "icons/server.xpm"
+
 
 #include <cJSON.h>
 
@@ -31,16 +35,17 @@ FXDEFMAP(ServerTreeList) stlEventMap[] = {
   FXMAPFUNC(SEL_RIGHTBUTTONPRESS, ServerTreeList::ID_REQUEST_TREE, ServerTreeList::OnCmdTreeRightClick),
   FXMAPFUNC(SEL_COMMAND, ServerTreeList::ID_NEW, ServerTreeList::OnAddNewServer),
   FXMAPFUNC(SEL_COMMAND, ServerTreeList::ID_EDIT, ServerTreeList::OnEditServer),
-  FXMAPFUNC(SEL_COMMAND, ServerTreeList::ID_DELETE, ServerTreeList::OnDeleteServer)
+  FXMAPFUNC(SEL_COMMAND, ServerTreeList::ID_DELETE, ServerTreeList::OnDeleteServer),
+  FXMAPFUNC(SEL_COMMAND, ServerTreeList::ID_CONNECT, ServerTreeList::OnConnectServer)
 };
 
 FXIMPLEMENT(ServerTreeList, FXTreeList, stlEventMap, ARRAYNUMBER(stlEventMap))
 
-ServerTreeList::ServerTreeList(FXComposite *parent) :
+ServerTreeList::ServerTreeList(FXComposite *parent, FXObject *qtTarget) :
   FXTreeList(parent, this, ID_REQUEST_TREE,
       FRAME_SUNKEN | FRAME_THICK | LAYOUT_FILL_X | LAYOUT_FILL_Y |
       LAYOUT_TOP | LAYOUT_RIGHT | TREELIST_SHOWS_BOXES | TREELIST_SHOWS_LINES |
-      TREELIST_SINGLESELECT)
+      TREELIST_SINGLESELECT), queryTool{qtTarget}
 {
   ico_root = new FXXPMIcon(getApp(), root_xpm);
   ico_server = new FXXPMIcon(getApp(), server_xpm);
@@ -208,6 +213,20 @@ long ServerTreeList::OnCmdTreeRightClick(FXObject* obj, FXSelector, void* ptr)
   serverMenu.create();
   serverMenu.popup(nullptr, event->root_x, event->root_y);
   getApp()->runModalWhileShown(&serverMenu);
+  return 1;
+}
+
+long ServerTreeList::OnConnectServer(FX::FXObject *, FX::FXSelector, void *)
+{
+  const FXTreeItem *item = getCurrentItem();
+  if (item == nullptr) {
+    printf("Cannot connect to non-existant item?!?\n");
+    return 1;
+  }
+  auto server = static_cast<Server *>(item->getData());
+
+  queryTool->handle(this, FXSEL(SEL_COMMAND, ID_CONNECT), server);
+
   return 1;
 }
 

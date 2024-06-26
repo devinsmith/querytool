@@ -23,13 +23,14 @@
 #include <sqlfront.h>
 #include <sybdb.h>
 
+#include "Server.h"
+
 namespace tds {
 
 class SqlConnection {
 public:
-  SqlConnection(const std::string& user, const std::string& pass,
-      const std::string& server, const std::string& database) :
-    _user{user}, _pass{pass}, _server{server}, _database{database}, _dbHandle{nullptr},
+  explicit SqlConnection(const Server& serverInfo) :
+    _serverInfo{serverInfo}, _dbHandle{nullptr},
     _fetched_rows{true}, _fetched_results{true} {}
 
   ~SqlConnection();
@@ -40,16 +41,9 @@ public:
   SqlConnection(SqlConnection&&) = delete;
   SqlConnection& operator=(SqlConnection&&) = delete;
 
-  const std::string& Server() const { return _server; }
-  const std::string& Database() const { return _database; }
-
   // Executing a stored procedure or query will automatically connect
   // It should not be necessary to call this method directly.
-  void Connect();
-
-  // Changes the database on an existing connection, returns true
-  // if successful, false otherwise.
-  bool ChangeDatabase(const std::string& newdb);
+  bool Connect();
 
   void Disconnect();
 
@@ -88,12 +82,9 @@ public:
 
 private:
   void run_initial_query();
-  static std::string fix_server(const std::string& str);
+  static std::string fix_server(const char *str);
 
-  std::string _user;
-  std::string _pass;
-  std::string _server;
-  std::string _database;
+  const Server& _serverInfo;
   DBPROCESS *_dbHandle;
   bool _fetched_rows;
   bool _fetched_results;

@@ -18,6 +18,7 @@
 
 #include "Config.h"
 #include "QueryTool.h"
+#include "SqlConnection.h"
 
 int main(int argc, char *argv[])
 {
@@ -26,6 +27,8 @@ int main(int argc, char *argv[])
     return -1;
   }
 
+  tds::sql_startup(nullptr);
+
   FXApp app("querytool", "drs");
   app.init(argc, argv);
 
@@ -33,6 +36,8 @@ int main(int argc, char *argv[])
   app.create();
 
   app.run();
+
+  tds::sql_shutdown();
 
   return 0;
 }

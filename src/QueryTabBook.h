@@ -21,6 +21,7 @@
 #include <list>
 
 #include "QueryTabItem.h"
+#include "Server.h"
 
 class QueryTabBook : public FXTabBook {
   FXDECLARE(QueryTabBook)
@@ -29,7 +30,7 @@ public:
   virtual ~QueryTabBook() = default;
 
 //  virtual void create();
-  void AddTab();
+  void AddTab(const Server& serverInfo);
 private:
   QueryTabBook() = default;
 

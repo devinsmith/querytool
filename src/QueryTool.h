@@ -42,6 +42,7 @@ public:
 
   long OnCommandAbout(FXObject*, FXSelector, void*);
   long OnCommandConnect(FXObject*, FXSelector, void*);
+  long OnServerListConnect(FXObject*, FXSelector, void *);
   long OnCommandDisconnect(FXObject*, FXSelector, void*);
   long OnCommandPreferences(FXObject*, FXSelector, void*);
   long OnCommandQuit(FXObject*, FXSelector, void*);

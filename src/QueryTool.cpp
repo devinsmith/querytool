@@ -21,6 +21,8 @@
 #include "QueryTool.h"
 #include "QueryTabItem.h"
 
+#include "SqlConnection.h"
+
 FXDEFMAP(QueryTool) queryToolMap[] = {
   FXMAPFUNC(SEL_COMMAND, QueryTool::ID_ABOUT, QueryTool::OnCommandAbout),
   FXMAPFUNC(SEL_COMMAND, QueryTool::ID_CONNECT, QueryTool::OnCommandConnect),
@@ -28,7 +30,8 @@ FXDEFMAP(QueryTool) queryToolMap[] = {
   FXMAPFUNC(SEL_COMMAND, QueryTool::ID_QUIT, QueryTool::OnCommandQuit),
   FXMAPFUNC(SEL_COMMAND, QueryTool::ID_QUERY_RUN, QueryTool::OnCommandQueryRun),
   FXMAPFUNC(SEL_COMMAND, QueryTool::ID_TEST_QUERY, QueryTool::OnCommandTestQuery),
-  FXMAPFUNC(SEL_COMMAND, QueryTool::ID_TEST_QUERY_TABLE, QueryTool::OnCommandTestQueryTable)
+  FXMAPFUNC(SEL_COMMAND, QueryTool::ID_TEST_QUERY_TABLE, QueryTool::OnCommandTestQueryTable),
+  FXMAPFUNC(SEL_COMMAND, ServerTreeList::ID_CONNECT, QueryTool::OnServerListConnect)
 };
 
 FXIMPLEMENT(QueryTool, FXMainWindow, queryToolMap, ARRAYNUMBER(queryToolMap))
@@ -79,7 +82,7 @@ QueryTool::QueryTool(FXApp *app) :
 //  queryFrame->setBackColor(FXRGB(128,128,128));
   tabBook = new QueryTabBook(queryFrame);
 
-  treeList = new ServerTreeList(srvFrame);
+  treeList = new ServerTreeList(srvFrame, this);
 }
 
 QueryTool::~QueryTool()
@@ -120,8 +123,24 @@ long QueryTool::OnCommandAbout(FXObject*, FXSelector, void*)
   return 1;
 }
 
-long QueryTool::OnCommandConnect(FXObject*, FXSelector, void*)
+long QueryTool::OnCommandConnect(FXObject*, FXSelector, void *data)
 {
+  return 1;
+}
+
+long QueryTool::OnServerListConnect(FXObject*, FXSelector, void *data)
+{
+  Server *server = static_cast<Server *>(data);
+
+  // We need to make sure we can make a connection before creating a query tab.
+  printf("Making connection to %s\n", server->server.text());
+
+  auto *connection = new tds::SqlConnection(*server);
+  if (! connection->Connect()) {
+   FXMessageBox::error(this, MBOX_OK, "QueryTool", "Failed to connect to SQL Server");
+   return 1;
+  }
+
   return 1;
 }
 
@@ -143,13 +162,22 @@ long QueryTool::OnCommandQuit(FXObject*, FXSelector, void*)
 
 long QueryTool::OnCommandQueryRun(FXObject*, FXSelector, void*)
 {
-  printf("Running a query...\n");
+  // Get current tab
+  int tabIndex = tabBook->getCurrent();
+  if (tabIndex == -1) {
+    // No selected tab
+    return 1;
+  }
+
+  QueryTabItem *item = static_cast<QueryTabItem *>(tabBook->childAtIndex(tabIndex * 2));
+  printf("Running a query on %d... %s\n", tabIndex, item->getText().text());
   return 1;
 }
 
 long QueryTool::OnCommandTestQuery(FX::FXObject *, FX::FXSelector, void *)
 {
-  tabBook->AddTab();
+  Server s;
+  tabBook->AddTab(s);
 #if 0
   QueryTabItem *newTab;
   if (tabBook == nullptr) {
@@ -190,7 +218,8 @@ long QueryTool::OnCommandTestQuery(FX::FXObject *, FX::FXSelector, void *)
 
 long QueryTool::OnCommandTestQueryTable(FX::FXObject *, FX::FXSelector, void *)
 {
-  tabBook->AddTab();
+  Server s;
+  tabBook->AddTab(s);
 #if 0
   QueryTabItem *newTab;
   if (tabBook == nullptr) {

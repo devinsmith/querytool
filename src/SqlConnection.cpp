@@ -165,27 +165,32 @@ SqlConnection::~SqlConnection()
   Disconnect();
 }
 
-void SqlConnection::Connect()
+bool SqlConnection::Connect()
 {
   if (_dbHandle == nullptr || dbdead(_dbHandle)) {
     LOGINREC *login = dblogin();
     DBSETLAPP(login, "Microsoft");
     dbsetlversion(login, DBVERSION_72);
-    DBSETLUSER(login, _user.c_str());
-    DBSETLPWD(login, _pass.c_str());
-    _dbHandle = tdsdbopen(login, fix_server(_server).c_str(), 1);
+    DBSETLUSER(login, _serverInfo.user.text());
+    DBSETLPWD(login, _serverInfo.password.text());
+    _dbHandle = tdsdbopen(login, fix_server(_serverInfo.server.text()).c_str(), 1);
     dbloginfree(login);
 
-    if (_dbHandle == nullptr || dbdead(_dbHandle))
-      throw std::runtime_error("Failed to connect to SQL Server");
+    if (_dbHandle == nullptr || dbdead(_dbHandle)) {
+      _error = "Failed to connect to SQL Server";
+      return false;
+    }
 
     // FreeTDS is so gross. Yep, instead of a void *, it's a BYTE * which
     // is an "unsigned char *"
     dbsetuserdata(_dbHandle, reinterpret_cast<BYTE *>(this));
 
-    dbuse(_dbHandle, _database.c_str());
+    if (! _serverInfo.default_database.empty()) {
+      dbuse(_dbHandle, _serverInfo.default_database.text());
+    }
     run_initial_query();
   }
+  return true;
 }
 
 void SqlConnection::run_initial_query()
@@ -446,7 +451,7 @@ SqlConnection::IsNullCol(int col)
   return srclen <= 0;
 }
 
-std::string SqlConnection::fix_server(const std::string& str)
+std::string SqlConnection::fix_server(const char *str)
 {
   std::string clean_server = str;
 
@@ -476,15 +481,6 @@ std::vector<std::string> SqlConnection::GetAllColumnNames()
   }
 
   return columns;
-}
-
-bool SqlConnection::ChangeDatabase(const std::string &newdb)
-{
-  if (dbuse(_dbHandle, newdb.c_str()) != FAIL) {
-    _database = newdb;
-    return true;
-  }
-  return false;
 }
 
 }

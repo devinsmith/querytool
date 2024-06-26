@@ -25,7 +25,7 @@
 class ServerTreeList : public FXTreeList {
   FXDECLARE(ServerTreeList)
 public:
-  explicit ServerTreeList(FXComposite *parent);
+  explicit ServerTreeList(FXComposite *parent, FXObject *qtTarget);
   virtual ~ServerTreeList();
 
   virtual void create();
@@ -45,11 +45,14 @@ public:
   long OnAddNewServer(FXObject*, FXSelector, void*);
   long OnEditServer(FXObject*, FXSelector, void*);
   long OnDeleteServer(FXObject*, FXSelector, void*);
+  long OnConnectServer(FXObject*, FXSelector, void*);
 private:
   ServerTreeList() = default;
 
   void loadConfig();
   void saveConfig() const;
+
+  FXObject *queryTool;
 
   // Request tree view icons.
   FXIcon *ico_root;
