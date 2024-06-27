@@ -30,6 +30,7 @@ public:
   virtual ~QueryTabBook() = default;
 
   void AddTab(const FXString& label, tds::SqlConnection *conn);
+  void ExecuteActiveTabQuery();
 private:
   QueryTabBook() = default;
 };

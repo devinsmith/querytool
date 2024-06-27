@@ -29,20 +29,12 @@
 
 #include <stddef.h>
 
-#if HAVE_NETDB_H
 #include <netdb.h>
-#endif /* HAVE_NETDB_H */
 
-#if HAVE_NETINET_IN_H
 #include <netinet/in.h>
-#endif /* HAVE_NET_INET_IN_H */
-#if HAVE_ARPA_INET_H
 #include <arpa/inet.h>
-#endif /* HAVE_ARPA_INET_H */
 
-#if HAVE_SYS_SOCKET_H
 #include <sys/socket.h>
-#endif /* HAVE_SYS_SOCKET_H */
 
 /* forward declaration */
 typedef struct tdsiconvinfo TDSICONV;
@@ -66,30 +58,6 @@ extern "C"
 }
 #endif
 #endif
-
-/**
- * A structure to hold all the compile-time settings.
- * This structure is returned by tds_get_compiletime_settings
- */
-
-typedef struct tds_compiletime_settings
-{
-	const char *freetds_version;	/* release version of FreeTDS */
-	const char *sysconfdir;		/* location of freetds.conf */
-	const char *last_update;	/* latest software_version date among the modules */
-	const char *tdsver;	/* TDS protocol version (4.2/4.6/5.0/7.0/7.1) 5.0 */
-	bool msdblib;		/* for MS style dblib */
-	bool sybase_compat;	/* enable increased Open Client binary compatibility */
-	bool threadsafe;		/* compile for thread safety default=no */
-	bool libiconv;		/* search for libiconv in DIR/include and DIR/lib */
-	bool iodbc;		/* build odbc driver against iODBC in DIR */
-	bool unixodbc;		/* build odbc driver against unixODBC in DIR */
-	bool openssl;		/* build against OpenSSL */
-	bool gnutls;		/* build against GnuTLS */
-	bool mars;		/* MARS enabled */
-	bool sspi;		/* SSPI enabled */
-	bool kerberos;		/* Kerberos enabled */
-} TDS_COMPILETIME_SETTINGS;
 
 /**
  * @file tds.h

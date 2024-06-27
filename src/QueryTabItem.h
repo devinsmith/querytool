@@ -32,6 +32,8 @@ public:
   virtual ~QueryTabItem() = default;
 
   virtual void create();
+
+  void ExecuteQuery();
 private:
   QueryTabItem() = default;
 

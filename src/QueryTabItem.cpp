@@ -78,6 +78,12 @@ QueryTabItem::QueryTabItem(FXTabBook *tabbook, const FXString& label, tds::SqlCo
 #endif
 }
 
+void QueryTabItem::ExecuteQuery()
+{
+  //
+  printf("Executing %s\n", text->getText().text());
+}
+
 void QueryTabItem::create()
 {
   FXTabItem::create();

@@ -22,9 +22,7 @@
 
 #include <stdlib.h>
 
-#if HAVE_UNISTD_H
 #include <unistd.h>
-#endif /* HAVE_UNISTD_H */
 
 #include <assert.h>
 
@@ -36,17 +34,11 @@
 #include <freetds/replacements.h>
 #include <freetds/enum_cap.h>
 
-#ifdef HAVE_STRING_H
 #include <string.h>
-#endif
 
-#ifdef HAVE_LOCALE_H
 #include <locale.h>
-#endif /* HAVE_LOCALE_H */
 
-#ifdef HAVE_LANGINFO_H
 #include <langinfo.h>
-#endif /* HAVE_LANGINFO_H */
 
 static void tds_free_env(TDSCONNECTION * conn);
 static void tds_free_compute_results(TDSSOCKET * tds);

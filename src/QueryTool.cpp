@@ -168,141 +168,16 @@ long QueryTool::OnCommandQuit(FXObject*, FXSelector, void*)
 
 long QueryTool::OnCommandQueryRun(FXObject*, FXSelector, void*)
 {
-  // Get current tab
-  int tabIndex = tabBook->getCurrent();
-  if (tabIndex == -1) {
-    // No selected tab
-    return 1;
-  }
-
-  QueryTabItem *item = static_cast<QueryTabItem *>(tabBook->childAtIndex(tabIndex * 2));
-  printf("Running a query on %d... %s\n", tabIndex, item->getText().text());
+  tabBook->ExecuteActiveTabQuery();
   return 1;
 }
 
 long QueryTool::OnCommandTestQuery(FX::FXObject *, FX::FXSelector, void *)
 {
   return 1;
-#if 0
-  QueryTabItem *newTab;
-  if (tabBook == nullptr) {
-//    tabBook = new FXTabBook(queryFrame, nullptr, 0, LAYOUT_FILL_X | LAYOUT_FILL_Y);
-    tabBook->create();
-    newTab = new QueryTabItem(tabBook, "Brand new");
-  } else {
-    newTab = new QueryTabItem(tabBook, "Additional tab");
-  }
-  newTab->create();
-  newTab->show();
-#endif
-
-#if 0
-  FXHorizontalFrame *frame = new FXHorizontalFrame(tabBook, FRAME_THICK|FRAME_RAISED);
-
-  // if query executed
-  FXSplitter *splitter = new FXSplitter(frame, SPLITTER_VERTICAL | LAYOUT_FILL_X | LAYOUT_FILL_Y);
-  FXVerticalFrame *queryTextFrame = new FXVerticalFrame(splitter, FRAME_SUNKEN | FRAME_THICK |
-      LAYOUT_FILL_X | LAYOUT_FILL_Y, 0,0, 0, 0, 0,0,0,0);
-  FXText *text = new FXText(queryTextFrame, nullptr, 0, LAYOUT_FILL_X | LAYOUT_FILL_Y);
-//  FXText *text2 = new FXText(splitter, nullptr, 0, LAYOUT_FILL_X | LAYOUT_FILL_Y);
-
-  frame->create();
-  splitter->create();
-  queryTextFrame->create();
-  text->create();
-//  text2->create();
-
-
-//  printf("%d\n", blah->shown());
-
-//  frame->create();
-#endif
-  tabBook->recalc();
-  return 1;
 }
 
 long QueryTool::OnCommandTestQueryTable(FX::FXObject *, FX::FXSelector, void *)
 {
-  return 1;
-#if 0
-  QueryTabItem *newTab;
-  if (tabBook == nullptr) {
-    //tabBook = new FXTabBook(queryFrame, nullptr, 0, LAYOUT_FILL_X | LAYOUT_FILL_Y);
-    tabBook->create();
-    newTab = new QueryTabItem(tabBook, "Brand new");
-  } else {
-    newTab = new QueryTabItem(tabBook, "Additional tab");
-  }
-  newTab->create();
-  newTab->show();
-#endif
-
-#if 0
-  FXHorizontalFrame *frame = new FXHorizontalFrame(tabBook, FRAME_THICK|FRAME_RAISED);
-
-  // if query executed
-  FXSplitter *splitter = new FXSplitter(frame, SPLITTER_VERTICAL | LAYOUT_FILL_X | LAYOUT_FILL_Y);
-  FXVerticalFrame *queryTextFrame = new FXVerticalFrame(splitter, FRAME_SUNKEN | FRAME_THICK |
-      LAYOUT_FILL_X | LAYOUT_FILL_Y, 0,0, 0, 0, 0,0,0,0);
-  FXText *text = new FXText(queryTextFrame, nullptr, 0, LAYOUT_FILL_X | LAYOUT_FILL_Y);
-  FXVerticalFrame *queryTableFrame = new FXVerticalFrame(splitter, FRAME_SUNKEN | FRAME_THICK |
-      LAYOUT_FILL_X | LAYOUT_FILL_Y, 0,0, 0, 0, 0,0,0,0);
-//  FXText *text2 = new FXText(splitter, nullptr, 0, LAYOUT_FILL_X | LAYOUT_FILL_Y);
-  FXTable *table=new FXTable(queryTableFrame,nullptr,0,TABLE_COL_SIZABLE|TABLE_ROW_SIZABLE|LAYOUT_FILL_X|LAYOUT_FILL_Y,0,0,0,0, 2,2,2,2);
-
-  table->setVisibleRows(20);
-  table->setVisibleColumns(8);
-
-  // Remove row header
-  table->setRowHeaderMode(LAYOUT_FIX_WIDTH);
-  table->setRowHeaderWidth(0);
-
-  table->setTableSize(50,14);
-  table->setBackColor(FXRGB(255,255,255));
-  table->setCellColor(0,0,FXRGB(255,255,255));
-  table->setCellColor(0,1,FXRGB(255,240, 240));
-  table->setCellColor(1,0,FXRGB(240, 255, 240));
-  table->setCellColor(1,1,FXRGB(240, 240, 255));
-  table->setHelpText("Editable table.");
-
-//  table->setRowRenumbering(FXHeader::decimalNumbering);
-//  table->setColumnRenumbering(FXHeader::alphaNumbering);
-
-  int r, c;
-  // Initialize scrollable part of table
-  for(r=0; r<50; r++){
-    for(c=0; c<14; c++){
-      table->setItemText(r,c,"r:"+FXStringVal(r)+" c:"+FXStringVal(c));
-      }
-    }
-
-  // Initialize column headers
-  for(c=0; c<12; c++){
-    table->setColumnText(c, "col" + FXStringVal(c));
-    }
-
-  // Initialize row headers
-#if 1
-  for(r=0; r<50; r++){
-    table->setRowText(r,FXStringVal(r));
-    }
-#endif
-
-
-
-  frame->create();
-  splitter->create();
-  queryTextFrame->create();
-  text->create();
-  queryTableFrame->create();
-  table->create();
-//  text2->create();
-
-
-//  printf("%d\n", blah->shown());
-
-//  frame->create();
-#endif
-  tabBook->recalc();
   return 1;
 }

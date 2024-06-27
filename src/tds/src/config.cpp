@@ -134,10 +134,11 @@ tds_read_config_info(TDSSOCKET * tds, TDSLOGIN * login, TDSLOCALE * locale)
 		/* fallback to interfaces file */
 		tdsdump_log(TDS_DBG_INFO1, "Failed in reading conf file.  Trying interface files.\n");
 		if (!tds_read_interfaces(tds_dstr_cstr(&login->server_name), connection)) {
-			tdsdump_log(TDS_DBG_INFO1, "Failed to find [%s] in configuration files; trying '%s' instead.\n", 
+			tdsdump_log(TDS_DBG_INFO1, "Failed to find [%s] in configuration files; trying '%s' instead.\n",
 						   tds_dstr_cstr(&login->server_name), tds_dstr_cstr(&connection->server_name));
-			if (connection->ip_addrs == nullptr)
-				tdserror(tds_get_ctx(tds), tds, TDSEINTF, 0);
+			if (connection->ip_addrs == nullptr) {
+        tdserror(tds_get_ctx(tds), tds, TDSEINTF, 0);
+      }
 		}
 	}
 

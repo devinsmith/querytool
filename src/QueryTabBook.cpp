@@ -33,3 +33,22 @@ void QueryTabBook::AddTab(const FXString& label, tds::SqlConnection *conn)
   newTab->create();
   newTab->show();
 }
+
+void QueryTabBook::ExecuteActiveTabQuery()
+{
+  // Get current tab
+  int tabIndex = this->getCurrent();
+  if (tabIndex == -1) {
+    // No selected tab
+    return;
+  }
+
+  auto *item = static_cast<QueryTabItem *>(this->childAtIndex(tabIndex * 2));
+  if (item == nullptr) {
+    fprintf(stderr, "Failed to find query tab, can't run query!\n");
+    return;
+  }
+
+  printf("Running a query on %d... %s\n", tabIndex, item->getText().text());
+  item->ExecuteQuery();
+}
