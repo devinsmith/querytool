@@ -21,7 +21,7 @@
 #include <list>
 
 #include "QueryTabItem.h"
-#include "Server.h"
+#include "SqlConnection.h"
 
 class QueryTabBook : public FXTabBook {
   FXDECLARE(QueryTabBook)
@@ -29,15 +29,9 @@ public:
   QueryTabBook(FXComposite *parent);
   virtual ~QueryTabBook() = default;
 
-//  virtual void create();
-  void AddTab(const Server& serverInfo);
+  void AddTab(const FXString& label, tds::SqlConnection *conn);
 private:
   QueryTabBook() = default;
-
-  //FXTabBook *parent;
-
-  //FXHorizontalFrame *frame;
-  std::list<QueryTabItem *> tabList;
 };
 
 #endif // QUERYTABBOOK_H

@@ -2,7 +2,7 @@
 add_library(tds STATIC
   charset_lookup.h
   mem.c token.c util.c login.cpp read.c
-  write.c convert.c numeric.c config.c query.c iconv.c
+  write.c convert.c numeric.c config.cpp query.c iconv.c
   locale.c
   getmac.cpp data.c net.c tls.c
   tds_checks.c log.c encodings.h

@@ -135,13 +135,17 @@ long QueryTool::OnServerListConnect(FXObject*, FXSelector, void *data)
   // We need to make sure we can make a connection before creating a query tab.
   printf("Making connection to %s\n", server->server.text());
 
-#if 0
+#if 1
   auto *connection = new tds::SqlConnection(*server);
   if (! connection->Connect()) {
    FXMessageBox::error(this, MBOX_OK, "QueryTool", "Failed to connect to SQL Server");
    return 1;
   }
 #endif
+
+  printf("Connected!\n");
+
+  tabBook->AddTab(server->name + " (" + server->user + ")", connection);
 
   return 1;
 }
@@ -178,8 +182,7 @@ long QueryTool::OnCommandQueryRun(FXObject*, FXSelector, void*)
 
 long QueryTool::OnCommandTestQuery(FX::FXObject *, FX::FXSelector, void *)
 {
-  Server s;
-  tabBook->AddTab(s);
+  return 1;
 #if 0
   QueryTabItem *newTab;
   if (tabBook == nullptr) {
@@ -220,8 +223,7 @@ long QueryTool::OnCommandTestQuery(FX::FXObject *, FX::FXSelector, void *)
 
 long QueryTool::OnCommandTestQueryTable(FX::FXObject *, FX::FXSelector, void *)
 {
-  Server s;
-  tabBook->AddTab(s);
+  return 1;
 #if 0
   QueryTabItem *newTab;
   if (tabBook == nullptr) {

@@ -27,17 +27,9 @@ QueryTabBook::QueryTabBook(FXComposite *parent) :
 {
 }
 
-void QueryTabBook::AddTab(const Server& serverInfo)
+void QueryTabBook::AddTab(const FXString& label, tds::SqlConnection *conn)
 {
-  QueryTabItem *newTab;
-
-  if (tabList.empty()) {
-    newTab = new QueryTabItem(this, "Brand new");
-  } else {
-    newTab = new QueryTabItem(this, "Additional tab");
-  }
+  QueryTabItem *newTab = new QueryTabItem(this, label, conn);
   newTab->create();
   newTab->show();
-
-  tabList.push_back(newTab);
 }

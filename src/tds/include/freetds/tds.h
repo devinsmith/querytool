@@ -1152,11 +1152,7 @@ struct tds_connection
  */
 struct tds_socket
 {
-#if ENABLE_ODBC_MARS
-	TDSCONNECTION *conn;
-#else
 	TDSCONNECTION conn[1];
-#endif
 
 	void *parent;
 
@@ -1193,29 +1189,6 @@ struct tds_socket
 	 */
 	TDSPACKET *frozen_packets;
 
-#if ENABLE_ODBC_MARS
-	/** SID of MARS session.
-	 * ==0  Not in a MARS session or first session
-	 * >0   SID of MARS session valid.
-	 */
-	uint16_t sid;
-
-	/**
-	 * This condition will be signaled by the network thread on packet
-	 * received or sent for this session
-	 */
-	tds_condition packet_cond;
-
-	/**
-	 * Packet we are trying to send to network.
-	 * This field should be protected by conn->list_mtx
-	 */
-	TDSPACKET *sending_packet;
-	TDS_UINT recv_seq;
-	TDS_UINT send_seq;
-	TDS_UINT recv_wnd;
-	TDS_UINT send_wnd;
-#endif
 	/* packet we received */
 	TDSPACKET *recv_packet;
 	/** packet we are preparing to send */
@@ -1263,23 +1236,13 @@ struct tds_socket
 
 
 /* config.c */
-const TDS_COMPILETIME_SETTINGS *tds_get_compiletime_settings(void);
-typedef void (*TDSCONFPARSE) (const char *option, const char *value, void *param);
-bool tds_read_conf_section(FILE * in, const char *section, TDSCONFPARSE tds_conf_parse, void *parse_param);
-bool tds_read_conf_file(TDSLOGIN * login, const char *server);
-void tds_parse_conf_section(const char *option, const char *value, void *param);
 TDSLOGIN *tds_read_config_info(TDSSOCKET * tds, TDSLOGIN * login, TDSLOCALE * locale);
 void tds_fix_login(TDSLOGIN* login);
-TDS_USMALLINT * tds_config_verstr(const char *tdsver, TDSLOGIN* login);
 struct addrinfo *tds_lookup_host(const char *servername);
 TDSRET tds_lookup_host_set(const char *servername, struct addrinfo **addr);
 const char *tds_addrinfo2str(struct addrinfo *addr, char *name, int namemax);
-char *tds_get_home_file(const char *file);
 
-TDSRET tds_set_interfaces_file_loc(const char *interfloc);
 extern const char STD_DATETIME_FMT[];
-int tds_parse_boolean(const char *value, int default_value);
-int tds_config_boolean(const char *option, const char *value, TDSLOGIN * login);
 
 TDSLOCALE *tds_get_locale(void);
 TDSRET tds_alloc_row(TDSRESULTINFO * res_info);

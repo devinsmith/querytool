@@ -19,6 +19,8 @@
 
 #include <fx.h>
 
+#include "SqlConnection.h"
+
 // A FXTabItem is rather simple, and is essentially just a label. New controls
 // are not really bound to the TabItem but the tabbook itself. It's not clear
 // how FOX determines what elements are part of which tabs.
@@ -26,7 +28,7 @@
 class QueryTabItem : public FXTabItem {
   FXDECLARE(QueryTabItem)
 public:
-  QueryTabItem(FXTabBook *tabbook, const FXString& label);
+  QueryTabItem(FXTabBook *tabbook, const FXString& label, tds::SqlConnection *conn);
   virtual ~QueryTabItem() = default;
 
   virtual void create();
@@ -34,8 +36,11 @@ private:
   QueryTabItem() = default;
 
   FXTabBook *parent;
+  FXText *text;
 
   FXHorizontalFrame *frame;
+
+  tds::SqlConnection *conn;
 };
 
 #endif // QUERYTABITEM_H

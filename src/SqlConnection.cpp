@@ -17,6 +17,7 @@
 #include <algorithm> // std::replace
 #include <cstring>
 #include <stdexcept>
+#include <langinfo.h>
 
 // FreeTDS stuff
 
@@ -159,7 +160,7 @@ void sql_startup(void (*log_func)(int, const char *))
   }
 
   if (context->locale && !context->locale->date_fmt) {
-    context->locale->date_fmt = strdup("");
+    context->locale->date_fmt = strdup(STD_DATETIME_FMT);
   }
   context->msg_handler = sql_db_msg_handler;
   context->err_handler = sql_db_err_handler;
@@ -178,14 +179,85 @@ void sql_shutdown()
   //dbexit();
 }
 
-#if 0
 SqlConnection::~SqlConnection()
 {
   Disconnect();
 }
 
+
 bool SqlConnection::Connect()
 {
+  // This can probably be massively simplified, as there is two login structs
+  // being allocated.
+  TDSLOGIN *login = tds_alloc_login();
+  if (!login) {
+    fprintf(stderr, "login cannot be null\n");
+    return false;
+  }
+
+  // Populate Login properties
+  tds_set_user(login, _serverInfo.user.text());
+  tds_set_app(login, "TSQL");
+  tds_set_library(login, "TDS-Library");
+  tds_set_language(login, "us_english");
+  tds_set_passwd(login, _serverInfo.password.text());
+  tds_set_server(login, _serverInfo.server.text());
+  tds_set_port(login, _serverInfo.port);
+
+  _tds = tds_alloc_socket(context, 512);
+  _tds->parent = nullptr;
+
+  TDSLOGIN *connection = tds_read_config_info(_tds, login, context->locale);
+  if (!connection)
+    return false;
+
+  // Get existing locale
+  char *locale = setlocale(LC_ALL, nullptr);
+  const char *charset = nl_langinfo(CODESET);
+
+  if (locale) {
+    printf("locale is %s\n", locale);
+  }
+  if (charset) {
+    printf("locale charset is %s\n", charset);
+  }
+
+  if (tds_dstr_isempty(&connection->client_charset)) {
+    if (!charset) {
+      charset = "ISO-8859-1";
+    }
+
+    if (!tds_set_client_charset(login, charset)) {
+      return false;
+    }
+    if (!tds_dstr_dup(&connection->client_charset, &login->client_charset)) {
+      return false;
+    }
+  }
+
+  printf("using default charset \"%s\"\n", tds_dstr_cstr(&connection->client_charset));
+
+  if (!_serverInfo.default_database.empty()) {
+    if (!tds_dstr_copy(&connection->database, _serverInfo.default_database.text())) {
+      return false;
+    }
+    fprintf(stderr, "Setting %s as default database in login packet\n", _serverInfo.default_database.text());
+  }
+
+  if (TDS_FAILED(tds_connect_and_login(_tds, connection))) {
+    tds_free_socket(_tds);
+    tds_free_login(login);
+    tds_free_context(context);
+    fprintf(stderr, "There was a problem connecting to the server\n");
+    return false;
+  }
+
+  if (!tds_dstr_isempty(&connection->instance_name)) {
+    printf("Instance: %s on port %d", tds_dstr_cstr(&connection->instance_name), connection->port);
+  }
+  tds_free_login(connection);
+
+#if 0
   if (_dbHandle == nullptr || dbdead(_dbHandle)) {
     LOGINREC *login = dblogin();
     DBSETLAPP(login, "Microsoft");
@@ -209,9 +281,10 @@ bool SqlConnection::Connect()
     }
     run_initial_query();
   }
+#endif
   return true;
 }
-
+#if 0
 void SqlConnection::run_initial_query()
 {
   // Heterogeneous queries require the ANSI_NULLS and ANSI_WARNINGS options to
@@ -224,13 +297,16 @@ void SqlConnection::run_initial_query()
       "SET CONCAT_NULL_YIELDS_NULL ON;");
 }
 
+#endif
 void SqlConnection::Disconnect()
 {
-  if (_dbHandle != nullptr) {
-    dbclose(_dbHandle);
-    _dbHandle = nullptr;
+  if (_tds != nullptr) {
+    tds_close_socket(_tds);
+    tds_free_socket(_tds);
+    _tds = nullptr;
   }
 }
+#if 0
 
 void SqlConnection::Dispose()
 {

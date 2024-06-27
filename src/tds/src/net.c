@@ -536,29 +536,11 @@ void
 tds_close_socket(TDSSOCKET * tds)
 {
 	if (!IS_TDSDEAD(tds)) {
-#if ENABLE_ODBC_MARS
-		TDSCONNECTION *conn = tds->conn;
-		unsigned n = 0, count = 0;
-		tds_mutex_lock(&conn->list_mtx);
-		for (; n < conn->num_sessions; ++n)
-			if (TDSSOCKET_VALID(conn->sessions[n]))
-				++count;
-		if (count > 1)
-			tds_append_fin(tds);
-		tds_mutex_unlock(&conn->list_mtx);
-		if (count <= 1) {
-			tds_disconnect(tds);
-			tds_connection_close(conn);
-		} else {
-			tds_set_state(tds, TDS_DEAD);
-		}
-#else
 		tds_disconnect(tds);
 		if (!TDS_IS_SOCKET_INVALID(tds_get_s(tds)) && CLOSESOCKET(tds_get_s(tds)) == -1)
 			tdserror(tds_get_ctx(tds), tds,  TDSECLOS, sock_errno);
 		tds_set_s(tds, INVALID_SOCKET);
 		tds_set_state(tds, TDS_DEAD);
-#endif
 	}
 }
 

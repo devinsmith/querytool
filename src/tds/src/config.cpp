@@ -23,23 +23,16 @@
 #include <stdio.h>
 
 #include <assert.h>
-#include <ctype.h>
 
 #include <stdlib.h>
 
 #include <string.h>
 
-#if HAVE_UNISTD_H
 #include <unistd.h>
-#endif /* HAVE_UNISTD_H */
 
-#if HAVE_NETDB_H
 #include <netdb.h>
-#endif /* HAVE_NETDB_H */
 
-#if HAVE_SYS_SOCKET_H
 #include <sys/socket.h>
-#endif /* HAVE_SYS_SOCKET_H */
 
 #include <sys/types.h>
 
@@ -52,8 +45,6 @@ static int tds_config_env_tdsdump(TDSLOGIN * login);
 static int tds_config_env_tdshost(TDSLOGIN * login);
 static bool tds_read_interfaces(const char *server, TDSLOGIN * login);
 static bool parse_server_name_for_port(TDSLOGIN * connection, TDSLOGIN * login, bool update_server);
-
-#define TDS_ISSPACE(c) isspace((unsigned char ) (c))
 
 const char STD_DATETIME_FMT[] = "%b %e %Y %I:%M%p";
 
@@ -90,18 +81,13 @@ static const char pid_logpath[] = "/tmp/freetds.log.%d";
 TDSLOGIN *
 tds_read_config_info(TDSSOCKET * tds, TDSLOGIN * login, TDSLOCALE * locale)
 {
-	TDSLOGIN *connection;
-	char *path;
-	pid_t pid;
 	int opened = 0;
-	bool found;
-	struct addrinfo *addrs;
 
 	/* allocate a new structure with hard coded and build-time defaults */
-	connection = tds_alloc_login();
+	TDSLOGIN *connection = tds_alloc_login();
 	if (!connection || !tds_init_login(connection, locale)) {
 		tds_free_login(connection);
-		return NULL;
+		return nullptr;
 	}
 
 	const char *s = getenv("TDSDUMPCONFIG");
@@ -109,7 +95,8 @@ tds_read_config_info(TDSSOCKET * tds, TDSLOGIN * login, TDSLOCALE * locale)
 		if (*s) {
 			opened = tdsdump_open(s);
 		} else {
-			pid = getpid();
+			pid_t pid = getpid();
+      char *path;
 			if (asprintf(&path, pid_config_logpath, (int) pid) >= 0) {
 				if (*path) {
 					opened = tdsdump_open(path);
@@ -124,33 +111,32 @@ tds_read_config_info(TDSSOCKET * tds, TDSLOGIN * login, TDSLOCALE * locale)
 
 	/* Read the config files. */
 	tdsdump_log(TDS_DBG_INFO1, "Attempting to read conf files.\n");
-	found = false;
-	if (!found) {
-		if (parse_server_name_for_port(connection, login, true)) {
+	bool found = false;
+  if (parse_server_name_for_port(connection, login, true)) {
 
-			found = false;
-			/* do it again to really override what found in freetds.conf */
-			parse_server_name_for_port(connection, login, false);
-			if (!found && TDS_SUCCEED(tds_lookup_host_set(tds_dstr_cstr(&connection->server_name), &connection->ip_addrs))) {
-				if (!tds_dstr_dup(&connection->server_host_name, &connection->server_name)) {
-					tds_free_login(connection);
-					return NULL;
-				}
-				found = true;
-			}
-			if (!tds_dstr_dup(&login->server_name, &connection->server_name)) {
-				tds_free_login(connection);
-				return NULL;
-			}
-		}
-	}
+    found = false;
+    /* do it again to really override what found in freetds.conf */
+    parse_server_name_for_port(connection, login, false);
+    if (TDS_SUCCEED(tds_lookup_host_set(tds_dstr_cstr(&connection->server_name), &connection->ip_addrs))) {
+      if (!tds_dstr_dup(&connection->server_host_name, &connection->server_name)) {
+        tds_free_login(connection);
+        return nullptr;
+      }
+      found = true;
+    }
+    if (!tds_dstr_dup(&login->server_name, &connection->server_name)) {
+      tds_free_login(connection);
+      return nullptr;
+    }
+  }
+
 	if (!found) {
 		/* fallback to interfaces file */
 		tdsdump_log(TDS_DBG_INFO1, "Failed in reading conf file.  Trying interface files.\n");
 		if (!tds_read_interfaces(tds_dstr_cstr(&login->server_name), connection)) {
 			tdsdump_log(TDS_DBG_INFO1, "Failed to find [%s] in configuration files; trying '%s' instead.\n", 
 						   tds_dstr_cstr(&login->server_name), tds_dstr_cstr(&connection->server_name));
-			if (connection->ip_addrs == NULL)
+			if (connection->ip_addrs == nullptr)
 				tdserror(tds_get_ctx(tds), tds, TDSEINTF, 0);
 		}
 	}
@@ -161,7 +147,7 @@ tds_read_config_info(TDSSOCKET * tds, TDSLOGIN * login, TDSLOCALE * locale)
 	/* And finally apply anything from the login structure */
 	if (!tds_config_login(connection, login)) {
 		tds_free_login(connection);
-		return NULL;
+		return nullptr;
 	}
 	
 	if (opened) {
@@ -171,10 +157,10 @@ tds_read_config_info(TDSSOCKET * tds, TDSLOGIN * login, TDSLOCALE * locale)
 		tdsdump_log(TDS_DBG_INFO1, "\t%20s = %s\n", "server_name", tds_dstr_cstr(&connection->server_name));
 		tdsdump_log(TDS_DBG_INFO1, "\t%20s = %s\n", "server_host_name", tds_dstr_cstr(&connection->server_host_name));
 
-		for (addrs = connection->ip_addrs; addrs != NULL; addrs = addrs->ai_next)
+		for (struct addrinfo *addrs = connection->ip_addrs; addrs != nullptr; addrs = addrs->ai_next)
 			tdsdump_log(TDS_DBG_INFO1, "\t%20s = %s\n", "ip_addr", tds_addrinfo2str(addrs, tmp, sizeof(tmp)));
 
-		if (connection->ip_addrs == NULL)
+		if (connection->ip_addrs == nullptr)
 			tdsdump_log(TDS_DBG_INFO1, "\t%20s = %s\n", "ip_addr", "");
 
 		tdsdump_log(TDS_DBG_INFO1, "\t%20s = %s\n", "instance_name", tds_dstr_cstr(&connection->instance_name));
@@ -210,9 +196,7 @@ tds_read_config_info(TDSSOCKET * tds, TDSLOGIN * login, TDSLOCALE * locale)
 		tdsdump_log(TDS_DBG_INFO1, "\t%20s = %d\n", "check_ssl_hostname", connection->check_ssl_hostname);
 		tdsdump_log(TDS_DBG_INFO1, "\t%20s = %s\n", "db_filename", tds_dstr_cstr(&connection->db_filename));
 		tdsdump_log(TDS_DBG_INFO1, "\t%20s = %d\n", "readonly_intent", connection->readonly_intent);
-#ifdef HAVE_OPENSSL
 		tdsdump_log(TDS_DBG_INFO1, "\t%20s = %s\n", "openssl_ciphers", tds_dstr_cstr(&connection->openssl_ciphers));
-#endif
 
 		tdsdump_close();
 	}

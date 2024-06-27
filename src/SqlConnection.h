@@ -26,16 +26,15 @@
 
 namespace tds {
 
-#if 0
 class SqlConnection {
 public:
   explicit SqlConnection(const Server& serverInfo) :
-    _serverInfo{serverInfo}, _dbHandle{nullptr},
+    _serverInfo{serverInfo}, _tds{nullptr},
     _fetched_rows{true}, _fetched_results{true} {}
 
   ~SqlConnection();
 
-  // No move or copy support. I don't want to deal with DBPROCESS pointer.
+  // No move or copy support. I don't want to deal with TDSSOCKET pointer.
   SqlConnection(const SqlConnection&) = delete;
   SqlConnection& operator=(const SqlConnection&) = delete;
   SqlConnection(SqlConnection&&) = delete;
@@ -46,6 +45,7 @@ public:
   bool Connect();
 
   void Disconnect();
+#if 0
 
   // When a query is executed freetds buffers the results into a
   // local buffer. Dispose must be called to clear out the results before
@@ -85,14 +85,14 @@ public:
 private:
   void run_initial_query();
   static std::string fix_server(const char *str);
-
+#endif
   const Server& _serverInfo;
-  TDSLOGIN *_dbHandle;
+  TDSSOCKET *_tds;
   bool _fetched_rows;
   bool _fetched_results;
   std::string _error;
+
 };
-#endif
 
 void sql_startup(void (*log_func)(int, const char *));
 void sql_shutdown();

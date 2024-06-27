@@ -21,16 +21,18 @@ FXDEFMAP(QueryTabItem) queryTabItemMap[] = {
 
 FXIMPLEMENT(QueryTabItem, FXTabItem, queryTabItemMap, ARRAYNUMBER(queryTabItemMap))
 
-QueryTabItem::QueryTabItem(FXTabBook *tabbook, const FXString& label) :
-  FXTabItem(tabbook, label, nullptr), parent(tabbook)
+QueryTabItem::QueryTabItem(FXTabBook *tabbook, const FXString& label, tds::SqlConnection *conn) :
+  FXTabItem(tabbook, label, nullptr), parent(tabbook), conn{conn}
 {
   frame = new FXHorizontalFrame(parent, FRAME_THICK|FRAME_RAISED);
 
-  // if query executed
   FXSplitter *splitter = new FXSplitter(frame, SPLITTER_VERTICAL | LAYOUT_FILL_X | LAYOUT_FILL_Y);
   FXVerticalFrame *queryTextFrame = new FXVerticalFrame(splitter, FRAME_SUNKEN | FRAME_THICK |
       LAYOUT_FILL_X | LAYOUT_FILL_Y, 0,0, 0, 0, 0,0,0,0);
-  FXText *text = new FXText(queryTextFrame, nullptr, 0, LAYOUT_FILL_X | LAYOUT_FILL_Y);
+  text = new FXText(queryTextFrame, nullptr, 0, LAYOUT_FILL_X | LAYOUT_FILL_Y);
+
+#if 0
+  // if query executed
   FXVerticalFrame *queryTableFrame = new FXVerticalFrame(splitter, FRAME_SUNKEN | FRAME_THICK |
       LAYOUT_FILL_X | LAYOUT_FILL_Y, 0,0, 0, 0, 0,0,0,0);
 //  FXText *text2 = new FXText(splitter, nullptr, 0, LAYOUT_FILL_X | LAYOUT_FILL_Y);
@@ -73,7 +75,7 @@ QueryTabItem::QueryTabItem(FXTabBook *tabbook, const FXString& label) :
     table->setRowText(r,FXStringVal(r));
     }
 #endif
-
+#endif
 }
 
 void QueryTabItem::create()

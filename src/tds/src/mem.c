@@ -967,10 +967,6 @@ tds_init_connection(TDSCONNECTION *conn, TDSCONTEXT *context, unsigned int bufsi
 	if (tds_mutex_init(&conn->list_mtx))
 		goto Cleanup;
 
-#if ENABLE_ODBC_MARS
-	TEST_CALLOC(conn->sessions, TDSSOCKET*, 64);
-	conn->num_sessions = 64;
-#endif
 	return conn;
 
 Cleanup:
@@ -1013,119 +1009,6 @@ tds_init_socket(TDSSOCKET * tds_socket, unsigned int bufsize)
 }
 
 
-#if ENABLE_ODBC_MARS
-static void
-tds_free_connection(TDSCONNECTION *conn)
-{
-	if (!conn) return;
-	assert(conn->in_net_tds == NULL);
-	tds_deinit_connection(conn);
-	free(conn);
-}
-
-static TDSCONNECTION *
-tds_alloc_connection(TDSCONTEXT *context, unsigned int bufsize)
-{
-	TDSCONNECTION *conn;
-
-	TEST_MALLOC(conn, TDSCONNECTION);
-	if (!tds_init_connection(conn, context, bufsize))
-		goto Cleanup;
-	return conn;
-
-Cleanup:
-	tds_free_connection(conn);
-	return NULL;
-}
-
-static TDSSOCKET *
-tds_alloc_socket_base(unsigned int bufsize)
-{
-	TDSSOCKET *tds_socket;
-
-	TEST_MALLOC(tds_socket, TDSSOCKET);
-	if (!tds_init_socket(tds_socket, bufsize))
-		goto Cleanup;
-	return tds_socket;
-
-      Cleanup:
-	tds_free_socket(tds_socket);
-	return NULL;
-}
-
-TDSSOCKET *
-tds_alloc_socket(TDSCONTEXT * context, unsigned int bufsize)
-{
-	TDSCONNECTION *conn = tds_alloc_connection(context, bufsize);
-	TDSSOCKET *tds;
-
-	if (!conn)
-		return NULL;
-
-	tds = tds_alloc_socket_base(bufsize);
-	if (tds) {
-		conn->sessions[0] = tds;
-		tds->conn = conn;
-		return tds;
-	}
-	tds_free_connection(conn);
-	return NULL;
-}
-
-static bool
-tds_alloc_new_sid(TDSSOCKET *tds)
-{
-	uint16_t sid;
-	TDSCONNECTION *conn = tds->conn;
-
-	tds_mutex_lock(&conn->list_mtx);
-	for (sid = 1; sid < conn->num_sessions; ++sid)
-		if (!conn->sessions[sid])
-			break;
-	if (sid == conn->num_sessions) {
-		/* extend array */
-		TDSSOCKET **s = (TDSSOCKET **) TDS_RESIZE(conn->sessions, sid+64);
-		if (!s)
-			goto error;
-		memset(s + conn->num_sessions, 0, sizeof(*s) * 64);
-		conn->num_sessions += 64;
-	}
-	conn->sessions[sid] = tds;
-	tds->sid = sid;
-error:
-	tds_mutex_unlock(&conn->list_mtx);
-	return tds->sid != 0;
-}
-
-TDSSOCKET *
-tds_alloc_additional_socket(TDSCONNECTION *conn)
-{
-	TDSSOCKET *tds;
-	if (!IS_TDS72_PLUS(conn) || !conn->mars)
-		return NULL;
-
-	tds = tds_alloc_socket_base(sizeof(TDS72_SMP_HEADER) + conn->env.block_size);
-	if (!tds)
-		return NULL;
-	tds->send_packet->data_start = sizeof(TDS72_SMP_HEADER);
-	tds->out_buf = tds->send_packet->buf + sizeof(TDS72_SMP_HEADER);
-	tds->out_buf_max -= sizeof(TDS72_SMP_HEADER);
-
-	tds->conn = conn;
-	if (!tds_alloc_new_sid(tds))
-		goto Cleanup;
-
-	tds->state = TDS_IDLE;
-	if (TDS_FAILED(tds_append_syn(tds)))
-		goto Cleanup;
-
-	return tds;
-
-      Cleanup:
-	tds_free_socket(tds);
-	return NULL;
-}
-#else /* !ENABLE_ODBC_MARS */
 TDSSOCKET *
 tds_alloc_socket(TDSCONTEXT * context, unsigned int bufsize)
 {
@@ -1142,7 +1025,6 @@ tds_alloc_socket(TDSCONTEXT * context, unsigned int bufsize)
 	tds_free_socket(tds_socket);
 	return NULL;
 }
-#endif /* !ENABLE_ODBC_MARS */
 
 TDSSOCKET *
 tds_realloc_socket(TDSSOCKET * tds, size_t bufsize)
