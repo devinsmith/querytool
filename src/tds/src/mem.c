@@ -29,7 +29,6 @@
 #include <freetds/tds.h>
 #include <freetds/iconv.h>
 #include <freetds/tls.h>
-#include <freetds/checks.h>
 #include <freetds/utils/string.h>
 #include <freetds/replacements.h>
 #include <freetds/enum_cap.h>
@@ -268,8 +267,6 @@ tds_alloc_param_data(TDSCOLUMN * curparam)
 {
 	TDS_INT data_size;
 	void *data;
-
-	CHECK_COLUMN_EXTRA(curparam);
 
 	data_size = curparam->funcs->row_len(curparam);
 

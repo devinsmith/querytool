@@ -20,55 +20,32 @@
 
 #include <config.h>
 
-#include <stdarg.h>
 #include <stdio.h>
 
-#if HAVE_ERRNO_H
 #include <errno.h>
-#endif /* HAVE_ERRNO_H */
 
-#if HAVE_UNISTD_H
 #include <unistd.h>
-#endif /* HAVE_UNISTD_H */
 
 #include <stdlib.h>
 #include <string.h>
 
-#if HAVE_SYS_SOCKET_H
 #include <sys/socket.h>
-#endif /* HAVE_SYS_SOCKET_H */
 
-#if HAVE_NETINET_IN_H
 #include <netinet/in.h>
-#endif /* HAVE_NETINET_IN_H */
 
-#if HAVE_NETINET_TCP_H
 #include <netinet/tcp.h>
-#endif /* HAVE_NETINET_TCP_H */
 
-#if HAVE_ARPA_INET_H
 #include <arpa/inet.h>
-#endif /* HAVE_ARPA_INET_H */
 
-#if HAVE_SYS_IOCTL_H
 #include <sys/ioctl.h>
-#endif /* HAVE_SYS_IOCTL_H */
 
-#if HAVE_SELECT_H
 #include <sys/select.h>
-#endif /* HAVE_SELECT_H */
 
-#if HAVE_POLL_H
 #include <poll.h>
-#endif /* HAVE_POLL_H */
 
-#if HAVE_FCNTL_H
 #include <fcntl.h>
-#endif /* HAVE_FCNTL_H */
 
-#ifdef HAVE_SYS_EVENTFD_H
 #include <sys/eventfd.h>
-#endif /* HAVE_SYS_EVENTFD_H */
 
 #ifdef _WIN32
 #include <winsock2.h>
@@ -86,11 +63,6 @@
 /* error is always returned */
 #define TDSSELERR   0
 #define TDSPOLLURG 0x8000u
-
-#if ENABLE_ODBC_MARS
-static void tds_check_cancel(TDSCONNECTION *conn);
-#endif
-
 
 /**
  * \addtogroup network
@@ -547,25 +519,13 @@ tds_close_socket(TDSSOCKET * tds)
 void
 tds_connection_close(TDSCONNECTION *conn)
 {
-#if ENABLE_ODBC_MARS
-	unsigned n = 0;
-#endif
-
-	if (!TDS_IS_SOCKET_INVALID(conn->s)) {
+  if (!TDS_IS_SOCKET_INVALID(conn->s)) {
 		/* TODO check error ?? how to return it ?? */
 		CLOSESOCKET(conn->s);
 		conn->s = INVALID_SOCKET;
 	}
 
-#if ENABLE_ODBC_MARS
-	tds_mutex_lock(&conn->list_mtx);
-	for (; n < conn->num_sessions; ++n)
-		if (TDSSOCKET_VALID(conn->sessions[n]))
-			tds_set_state(conn->sessions[n], TDS_DEAD);
-	tds_mutex_unlock(&conn->list_mtx);
-#else
-	tds_set_state((TDSSOCKET* ) conn, TDS_DEAD);
-#endif
+  tds_set_state((TDSSOCKET* ) conn, TDS_DEAD);
 }
 
 /**
@@ -1017,143 +977,6 @@ tds_connection_write(TDSSOCKET *tds, const unsigned char *buf, int buflen, int f
 }
 
 /**
- * Get port of all instances
- * @return default port number or 0 if error
- * @remark experimental, cf. MC-SQLR.pdf.
- */
-int
-tds7_get_instance_ports(FILE *output, struct addrinfo *addr)
-{
-	int num_try;
-	struct pollfd fd;
-	int retval;
-	TDS_SYS_SOCKET s;
-	char msg[16*1024];
-	int msg_len = 0;
-	int port = 0;
-	char ipaddr[128];
-
-
-	tds_addrinfo_set_port(addr, 1434);
-	tds_addrinfo2str(addr, ipaddr, sizeof(ipaddr));
-
-	tdsdump_log(TDS_DBG_ERROR, "tds7_get_instance_ports(%s)\n", ipaddr);
-
-	/* create an UDP socket */
-	if (TDS_IS_SOCKET_INVALID(s = socket(addr->ai_family, SOCK_DGRAM, 0))) {
-		char *errstr = sock_strerror(sock_errno);
-		tdsdump_log(TDS_DBG_ERROR, "socket creation error: %s\n", errstr);
-		sock_strerror_free(errstr);
-		return 0;
-	}
-
-	/*
-	 * on cluster environment is possible that reply packet came from
-	 * different IP so do not filter by ip with connect
-	 */
-
-	if (tds_socket_set_nonblocking(s) != 0) {
-		CLOSESOCKET(s);
-		return 0;
-	}
-
-	/* 
-	 * Request the instance's port from the server.  
-	 * There is no easy way to detect if port is closed so we always try to
-	 * get a reply from server 16 times. 
-	 */
-	for (num_try = 0; num_try < 16 && msg_len == 0; ++num_try) {
-		/* send the request */
-		msg[0] = 3;
-		if (sendto(s, msg, 1, 0, addr->ai_addr, addr->ai_addrlen) < 0)
-			break;
-
-		fd.fd = s;
-		fd.events = POLLIN;
-		fd.revents = 0;
-
-		retval = poll(&fd, 1, 1000);
-		
-		/* on interrupt ignore */
-		if (retval < 0 && sock_errno == TDSSOCK_EINTR)
-			continue;
-		
-		if (retval == 0) { /* timed out */
-#if 1
-			tdsdump_log(TDS_DBG_ERROR, "tds7_get_instance_port: timed out on try %d of 16\n", num_try);
-			continue;
-#else
-			int rc;
-			tdsdump_log(TDS_DBG_INFO1, "timed out\n");
-
-			switch(rc = tdserror(NULL, NULL, TDSETIME, 0)) {
-			case TDS_INT_CONTINUE:
-				continue;	/* try again */
-
-			default:
-				tdsdump_log(TDS_DBG_ERROR, "error: client error handler returned %d\n", rc);
-			case TDS_INT_CANCEL: 
-				CLOSESOCKET(s);
-				return 0;
-			}
-#endif
-		}
-		if (retval < 0)
-			break;
-
-		/* got data, read and parse */
-		if ((msg_len = recv(s, msg, sizeof(msg) - 1, 0)) > 3 && msg[0] == 5) {
-			char *name, sep[2] = ";", *save;
-
-			/* assure null terminated */
-			msg[msg_len] = 0;
-			tdsdump_dump_buf(TDS_DBG_INFO1, "instance info", msg, msg_len);
-			
-			if (0) {	/* To debug, print the whole string. */
-				char *p;
-
-				for (*sep = '\n', p=msg+3; p < msg + msg_len; p++) {
-					if( *p == ';' )
-						*p = *sep;
-				}
-				fputs(msg + 3, output);
-			}
-
-			/*
-			 * Parse and print message.
-			 */
-			name = strtok_r(msg+3, sep, &save);
-			while (name && output) {
-				int i;
-				static const char *const names[] = { "ServerName", "InstanceName", "IsClustered", "Version",
-							       "tcp", "np", "via" };
-
-				for (i=0; name && i < TDS_VECTOR_SIZE(names); i++) {
-					const char *value = strtok_r(NULL, sep, &save);
-					
-					if (strcmp(name, names[i]) != 0)
-						fprintf(output, "error: expecting '%s', found '%s'\n", names[i], name);
-					if (value) 
-						fprintf(output, "%15s %s\n", name, value);
-					else 
-						break;
-
-					name = strtok_r(NULL, sep, &save);
-
-					if (name && strcmp(name, names[0]) == 0)
-						break;
-				}
-				if (name) 
-					fprintf(output, "\n");
-			}
-		}
-	}
-	CLOSESOCKET(s);
-	tdsdump_log(TDS_DBG_ERROR, "default instance port is %d\n", port);
-	return port;
-}
-
-/**
  * Get port of given instance
  * @return port number or 0 if error
  */
@@ -1200,7 +1023,7 @@ tds7_get_instance_port(struct addrinfo *addr, const char *instance)
 	for (num_try = 0; num_try < 16; ++num_try) {
 		/* send the request */
 		msg[0] = 4;
-		strlcpy(msg + 1, instance, sizeof(msg) - 1);
+    snprintf(msg + 1, sizeof(msg) - 1, "%s", instance);
 		if (sendto(s, msg, (int)strlen(msg) + 1, 0, addr->ai_addr, addr->ai_addrlen) < 0)
 			break;
 

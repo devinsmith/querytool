@@ -196,7 +196,6 @@
 #include <freetds/tds.h>
 #include <freetds/bytes.h>
 #include <freetds/iconv.h>
-#include <freetds/checks.h>
 #include <freetds/stream.h>
 #include <freetds/data.h>
 
@@ -683,7 +682,6 @@ tds_variant_get(TDSSOCKET * tds, TDSCOLUMN * curcol)
 #endif
 	}
 	v->data_len = colsize;
-	CHECK_COLUMN_EXTRA(curcol);
 	return TDS_SUCCESS;
 
 error_type:
@@ -705,9 +703,6 @@ tds_generic_get(TDSSOCKET * tds, TDSCOLUMN * curcol)
 	int len, colsize;
 	int fillchar;
 	TDSBLOB *blob = NULL;
-
-	CHECK_TDS_EXTRA(tds);
-	CHECK_COLUMN_EXTRA(curcol);
 
 	tdsdump_log(TDS_DBG_INFO1, "tds_get_data: type %d, varint size %d\n", curcol->column_type, curcol->column_varint_size);
 	switch (curcol->column_varint_size) {
@@ -865,9 +860,6 @@ tds_generic_put_info(TDSSOCKET * tds, TDSCOLUMN * col)
 {
 	size_t size;
 
-	CHECK_TDS_EXTRA(tds);
-	CHECK_COLUMN_EXTRA(col);
-
 	size = tds_fix_column_size(tds, col);
 	switch (col->column_varint_size) {
 	case 0:
@@ -913,9 +905,6 @@ tds_generic_put(TDSSOCKET * tds, TDSCOLUMN * curcol, int bcp7)
 
 	const char *s;
 	int converted = 0;
-
-	CHECK_TDS_EXTRA(tds);
-	CHECK_COLUMN_EXTRA(curcol);
 
 	tdsdump_log(TDS_DBG_INFO1, "tds_generic_put: colsize = %d\n", (int) curcol->column_cur_size);
 
@@ -1145,9 +1134,6 @@ tds_numeric_get(TDSSOCKET * tds, TDSCOLUMN * curcol)
 	int colsize;
 	TDS_NUMERIC *num;
 
-	CHECK_TDS_EXTRA(tds);
-	CHECK_COLUMN_EXTRA(curcol);
-
 	colsize = tds_get_byte(tds);
 
 	/* set NULL flag in the row buffer */
@@ -1185,9 +1171,6 @@ tds_numeric_get(TDSSOCKET * tds, TDSCOLUMN * curcol)
 TDSRET
 tds_numeric_put_info(TDSSOCKET * tds, TDSCOLUMN * col)
 {
-	CHECK_TDS_EXTRA(tds);
-	CHECK_COLUMN_EXTRA(col);
-
 #if 1
 	tds_put_byte(tds, tds_numeric_bytes_per_prec[col->column_prec]);
 	tds_put_byte(tds, col->column_prec);

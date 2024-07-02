@@ -30,7 +30,6 @@
 #include <freetds/tds.h>
 #include <freetds/iconv.h>
 #include <freetds/utils/string.h>
-#include <freetds/checks.h>
 
 #include <assert.h>
 
@@ -119,8 +118,6 @@ tds_convert_string(TDSSOCKET * tds, TDSICONV * char_conv, const char *s, int len
 
 	/* char_conv is only mostly const */
 	TDS_ERRNO_MESSAGE_FLAGS *suppress = (TDS_ERRNO_MESSAGE_FLAGS*) &char_conv->suppress;
-
-	CHECK_TDS_EXTRA(tds);
 
 	il = len < 0 ? strlen(s) : (size_t) len;
 	if (char_conv->flags == TDS_ENCODING_MEMCPY) {
@@ -281,9 +278,6 @@ tds_submit_query_params(TDSSOCKET * tds, const char *query, TDSPARAMINFO * param
 	size_t query_len;
 	int num_params = params ? params->num_cols : 0;
 
-	if (params)
-		CHECK_PARAMINFO_EXTRA(params);
- 
 	if (!query)
 		return TDS_FAIL;
  
@@ -374,8 +368,6 @@ tds_submit_queryf(TDSSOCKET * tds, const char *queryf, ...)
 	va_list ap;
 	char *query = NULL;
 	TDSRET rc = TDS_FAIL;
-
-	CHECK_TDS_EXTRA(tds);
 
 	va_start(ap, queryf);
 	if (vasprintf(&query, queryf, ap) >= 0) {
@@ -627,9 +619,6 @@ tds_get_column_declaration(TDSSOCKET * tds, TDSCOLUMN * curcol, char *out)
 	unsigned int max_len = IS_TDS7_PLUS(tds->conn) ? 8000 : 255;
 	unsigned int size;
 
-	CHECK_TDS_EXTRA(tds);
-	CHECK_COLUMN_EXTRA(curcol);
-
 	size = tds_fix_column_size(tds, curcol);
 
 	switch (tds_get_conversion_type(curcol->on_server.column_type, curcol->on_server.column_size)) {
@@ -814,10 +803,6 @@ tds7_write_param_def_from_query(TDSSOCKET * tds, const char* converted_query, si
 
 	assert(IS_TDS7_PLUS(tds->conn));
 
-	CHECK_TDS_EXTRA(tds);
-	if (params)
-		CHECK_PARAMINFO_EXTRA(params);
-
 	count = tds_count_placeholders_ucs2le(converted_query, converted_query + converted_query_len);
 
 	/* string with parameters types */
@@ -878,10 +863,6 @@ tds7_write_param_def_from_params(TDSSOCKET * tds, const char* query, size_t quer
 	size_t written;
 
 	assert(IS_TDS7_PLUS(tds->conn));
-
-	CHECK_TDS_EXTRA(tds);
-	if (params)
-		CHECK_PARAMINFO_EXTRA(params);
 
 	/* string with parameters types */
 	tds_put_byte(tds, 0);
@@ -974,8 +955,6 @@ tds7_put_query_params(TDSSOCKET * tds, const char *query, size_t query_len)
 	char buf[24];
 	const char *const query_end = query + query_len;
 
-	CHECK_TDS_EXTRA(tds);
-
 	assert(IS_TDS7_PLUS(tds->conn));
 
 	/* we use all "@PX" for parameters */
@@ -1060,8 +1039,6 @@ tds_put_data_info(TDSSOCKET * tds, TDSCOLUMN * curcol, int flags)
 {
 	int len;
 
-	CHECK_TDS_EXTRA(tds);
-	CHECK_COLUMN_EXTRA(curcol);
 
 	if (flags & TDS_PUT_DATA_USE_NAME) {
 		len = tds_dstr_len(&curcol->column_name);
@@ -1201,8 +1178,6 @@ tds_send_cancel(TDSSOCKET * tds)
 		return TDS_SUCCESS;
 	}
 
-	CHECK_TDS_EXTRA(tds);
-
 	tdsdump_log(TDS_DBG_FUNC, "tds_send_cancel: %sin_cancel and %sidle\n", 
 				(tds->in_cancel? "":"not "), (tds->state == TDS_IDLE? "":"not "));
 
@@ -1235,8 +1210,6 @@ tds_quote(TDSSOCKET * tds, char *buffer, char quoting, const char *id, size_t le
 	size_t size;
 	const char *src, *pend;
 	char *dst;
-
-	CHECK_TDS_EXTRA(tds);
 
 	pend = id + len;
 
@@ -1276,8 +1249,6 @@ size_t
 tds_quote_id(TDSSOCKET * tds, char *buffer, const char *id, int idlen)
 {
 	size_t i, len;
-
-	CHECK_TDS_EXTRA(tds);
 
 	len = idlen < 0 ? strlen(id) : (size_t) idlen;
 
@@ -1325,8 +1296,6 @@ tds_set_cur_cursor(TDSSOCKET *tds, TDSCURSOR *cursor)
 TDSRET
 tds_cursor_close(TDSSOCKET * tds, TDSCURSOR * cursor)
 {
-	CHECK_TDS_EXTRA(tds);
-
 	if (!cursor)
 		return TDS_FAIL;
 
@@ -1408,8 +1377,6 @@ tds_cursor_dealloc(TDSSOCKET * tds, TDSCURSOR * cursor)
 {
 	TDSRET res = TDS_SUCCESS;
 
-	CHECK_TDS_EXTRA(tds);
-
 	if (!cursor)
 		return TDS_FAIL;
 
@@ -1455,8 +1422,6 @@ tds_disconnect(TDSSOCKET * tds)
 {
 	TDS_INT old_timeout;
 	const TDSCONTEXT *old_ctx;
-
-	CHECK_TDS_EXTRA(tds);
  
 	tdsdump_log(TDS_DBG_FUNC, "tds_disconnect() \n");
  

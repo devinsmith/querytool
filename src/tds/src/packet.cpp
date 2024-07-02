@@ -36,7 +36,6 @@
 #include <freetds/bytes.h>
 #include <freetds/iconv.h>
 #include <freetds/replacements.h>
-#include <freetds/checks.h>
 #include <freetds/tls.h>
 
 static TDSRET tds_update_recv_wnd(TDSSOCKET *tds, TDS_UINT new_recv_wnd);
@@ -55,7 +54,6 @@ tds_get_packet(TDSCONNECTION *conn, unsigned len)
 
 		/* return it */
 		if (packet->capacity >= len) {
-			TDS_MARK_UNDEFINED(packet->buf, packet->capacity);
 			packet->next = NULL;
 			tds_packet_zero_data_start(packet);
 			packet->data_len = 0;
@@ -309,12 +307,9 @@ tds_write_packet(TDSSOCKET * tds, unsigned char final)
 		pkt->data_len = tds->out_pos;
 		tds_set_current_send_packet(tds, pkt_next);
 		tds->out_pos = left + 8;
-		CHECK_TDS_EXTRA(tds);
 		return TDS_SUCCESS;
 	}
 
-#if ENABLE_ODBC_MARS
-#else /* !ENABLE_ODBC_MARS */
 	tdsdump_dump_buf(TDS_DBG_NETWORK, "Sending packet", tds->out_buf, tds->out_pos);
 
 	/* GW added in check for write() returning <0 and SIGPIPE checking */
@@ -322,7 +317,6 @@ tds_write_packet(TDSSOCKET * tds, unsigned char final)
 		TDS_FAIL : TDS_SUCCESS;
 
 	memcpy(tds->out_buf + 8, tds->out_buf + tds->out_buf_max, left);
-#endif /* !ENABLE_ODBC_MARS */
 
 	tds->out_pos = left + 8;
 
@@ -430,10 +424,7 @@ tds_packet_write(TDSCONNECTION *conn)
 void
 tds_freeze(TDSSOCKET *tds, TDSFREEZE *freeze, unsigned size_len)
 {
-	CHECK_TDS_EXTRA(tds);
-	tds_extra_assert(size_len <= 4 && size_len != 3);
-
-	if (tds->out_pos > tds->out_buf_max)
+  if (tds->out_pos > tds->out_buf_max)
 		tds_write_packet(tds, 0x0);
 
 	if (!tds->frozen)
@@ -446,8 +437,6 @@ tds_freeze(TDSSOCKET *tds, TDSFREEZE *freeze, unsigned size_len)
 	freeze->size_len = size_len;
 	if (size_len)
 		tds_put_n(tds, NULL, size_len);
-
-	CHECK_FREEZE_EXTRA(freeze);
 }
 
 /**
@@ -461,8 +450,6 @@ tds_freeze_written(TDSFREEZE *freeze)
 	TDSSOCKET *tds = freeze->tds;
 	TDSPACKET *pkt = freeze->pkt;
 	size_t size;
-
-	CHECK_FREEZE_EXTRA(freeze);
 
 	/* last packet needs special handling */
 	size = tds->out_pos;
@@ -486,8 +473,6 @@ tds_freeze_abort(TDSFREEZE *freeze)
 {
 	TDSSOCKET *tds = freeze->tds;
 	TDSPACKET *pkt = freeze->pkt;
-
-	CHECK_FREEZE_EXTRA(freeze);
 
 	if (pkt->next) {
 		tds_mutex_lock(&tds->conn->list_mtx);
@@ -582,8 +567,6 @@ tds_freeze_close_len(TDSFREEZE *freeze, int32_t size)
 				pkt = next;
 				next = pkt->next;
 			}
-			tds_extra_assert(pkt->next != NULL);
-			tds_extra_assert(pkt->next == tds->send_packet);
 
 			pkt->next = NULL;
 			tds_mutex_lock(&tds->conn->list_mtx);
@@ -594,18 +577,12 @@ tds_freeze_close_len(TDSFREEZE *freeze, int32_t size)
 		pkt = next;
 	}
 
-	tds_extra_assert(pkt->next == NULL);
-	tds_extra_assert(pkt == tds->send_packet);
-
-#if !ENABLE_ODBC_MARS
-	if (last_pkt_sent) {
-		tds_extra_assert(last_pkt_sent->next == pkt);
+  if (last_pkt_sent) {
 		last_pkt_sent->next = NULL;
 		tds_mutex_lock(&tds->conn->list_mtx);
 		tds_packet_cache_add(tds->conn, freeze->pkt);
 		tds_mutex_unlock(&tds->conn->list_mtx);
 	}
-#endif
 
 	/* keep final packet so we can continue to add data */
 	return TDS_SUCCESS;

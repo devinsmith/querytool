@@ -42,7 +42,6 @@
 #include <freetds/bytes.h>
 #include <freetds/tls.h>
 #include <freetds/stream.h>
-#include <freetds/checks.h>
 
 static TDSRET tds71_do_login(TDSSOCKET * tds, TDSLOGIN * login);
 static TDSRET tds7_send_login(TDSSOCKET * tds, const TDSLOGIN * login);
@@ -144,8 +143,6 @@ tds_set_spid(TDSSOCKET * tds)
 	TDS_INT done_flags;
 	TDSRET rc;
 	TDSCOLUMN *curcol;
-
-	CHECK_TDS_EXTRA(tds);
 
 	while ((rc = tds_process_tokens(tds, &result_type, &done_flags, TDS_RETURN_ROW|TDS_RETURN_DONE)) == TDS_SUCCESS) {
 

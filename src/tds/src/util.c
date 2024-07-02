@@ -41,7 +41,6 @@
 #endif
 
 #include <freetds/tds.h>
-#include <freetds/checks.h>
 #include <freetds/thread.h>
 
 /**
@@ -135,7 +134,6 @@ tds_set_state(TDSSOCKET * tds, TDS_STATE state)
 		}
 		break;
 	case TDS_WRITING:
-		CHECK_TDS_EXTRA(tds);
 
 		if (tds_mutex_trylock(&tds->wire_mtx))
 			return tds->state;
@@ -173,8 +171,6 @@ tds_set_state(TDSSOCKET * tds, TDS_STATE state)
 	state = tds->state;
 
 	tdsdump_log(TDS_DBG_INFO1, "Changed query state from %s to %s\n", state_names[prior_state], state_names[state]);
-	CHECK_TDS_EXTRA(tds);
-
 	return state;
 }
 
@@ -331,11 +327,6 @@ tdserror (const TDSCONTEXT * tds_ctx, TDSSOCKET * tds, int msgno, int errnum)
 		if (err->msgno == msgno)
 			break;
 	}
-
-	CHECK_CONTEXT_EXTRA(tds_ctx);
-
-	if (tds)
-		CHECK_TDS_EXTRA(tds);
 
 	if (tds_ctx && tds_ctx->err_handler) {
 		memset(&msg, 0, sizeof(TDSMESSAGE));

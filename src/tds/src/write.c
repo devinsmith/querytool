@@ -44,7 +44,6 @@
 #include <freetds/iconv.h>
 #include <freetds/bytes.h>
 #include <freetds/stream.h>
-#include <freetds/checks.h>
 
 #if TDS_ADDITIONAL_SPACE < 8
 #error Not supported
@@ -210,7 +209,6 @@ tds_put_byte(TDSSOCKET * tds, unsigned char c)
 int
 tds_init_write_buf(TDSSOCKET * tds)
 {
-	TDS_MARK_UNDEFINED(tds->out_buf, tds->out_buf_max);
 	tds->out_pos = 8;
 	return 0;
 }

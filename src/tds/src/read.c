@@ -40,7 +40,6 @@
 #include <freetds/bytes.h>
 #include <freetds/stream.h>
 #include <freetds/utils/string.h>
-#include <freetds/checks.h>
 
 static size_t read_and_convert(TDSSOCKET * tds, TDSICONV * char_conv,
 			       size_t * wire_size, char *outbuf, size_t outbytesleft);
@@ -284,8 +283,6 @@ DSTR*
 tds_dstr_get(TDSSOCKET * tds, DSTR * s, size_t len)
 {
 	size_t out_len;
-
-	CHECK_TDS_EXTRA(tds);
 
 	/* assure sufficient space for every conversion */
 	if (TDS_UNLIKELY(!tds_dstr_alloc(s, len * 4))) {

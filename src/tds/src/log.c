@@ -42,7 +42,6 @@
 #endif
 
 #include <freetds/tds.h>
-#include <freetds/checks.h>
 #include <freetds/thread.h>
 #include <freetds/utils.h>
 
