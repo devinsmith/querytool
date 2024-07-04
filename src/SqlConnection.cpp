@@ -258,31 +258,6 @@ bool SqlConnection::Connect()
   }
   tds_free_login(connection);
 
-#if 0
-  if (_dbHandle == nullptr || dbdead(_dbHandle)) {
-    LOGINREC *login = dblogin();
-    DBSETLAPP(login, "Microsoft");
-    dbsetlversion(login, DBVERSION_72);
-    DBSETLUSER(login, _serverInfo.user.text());
-    DBSETLPWD(login, _serverInfo.password.text());
-    _dbHandle = tdsdbopen(login, fix_server(_serverInfo.server.text()).c_str(), 1);
-    dbloginfree(login);
-
-    if (_dbHandle == nullptr || dbdead(_dbHandle)) {
-      _error = "Failed to connect to SQL Server";
-      return false;
-    }
-
-    // FreeTDS is so gross. Yep, instead of a void *, it's a BYTE * which
-    // is an "unsigned char *"
-    dbsetuserdata(_dbHandle, reinterpret_cast<BYTE *>(this));
-
-    if (! _serverInfo.default_database.empty()) {
-      dbuse(_dbHandle, _serverInfo.default_database.text());
-    }
-    run_initial_query();
-  }
-#endif
   return true;
 }
 #if 0

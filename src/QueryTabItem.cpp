@@ -32,6 +32,8 @@ QueryTabItem::QueryTabItem(FXTabBook *tabbook, const FXString& label, tds::SqlCo
   text = new FXText(queryTextFrame, nullptr, 0, LAYOUT_FILL_X | LAYOUT_FILL_Y);
 
   statusBar = new FXStatusBar(frame, LAYOUT_FILL_X);
+
+  conn->setTarget(this);
 #if 0
   // if query executed
   queryFrame = new FXVerticalFrame(splitter, FRAME_SUNKEN | FRAME_THICK |

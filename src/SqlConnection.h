@@ -41,6 +41,8 @@ public:
   SqlConnection(SqlConnection&&) = delete;
   SqlConnection& operator=(SqlConnection&&) = delete;
 
+  void setTarget(FXObject *target) { tgt = target; }
+
   // Executing a stored procedure or query will automatically connect
   // It should not be necessary to call this method directly.
   bool Connect();
@@ -91,6 +93,7 @@ private:
   static std::string fix_server(const char *str);
 #endif
   const Server& _serverInfo;
+  FXObject *tgt;
   TDSSOCKET *_tds;
   bool _fetched_rows;
   bool _fetched_results;
