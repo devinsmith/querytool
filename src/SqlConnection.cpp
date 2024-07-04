@@ -22,6 +22,7 @@
 // FreeTDS stuff
 
 #include "SqlConnection.h"
+#include "freetds/convert.h"
 
 // Global context
 static TDSCONTEXT *context;
@@ -306,6 +307,99 @@ void SqlConnection::Disconnect()
     _tds = nullptr;
   }
 }
+
+bool SqlConnection::SubmitQuery(const char *sql)
+{
+  TDSRET ret = tds_submit_query(_tds, sql);
+  if (TDS_FAILED(ret)) {
+    // Message raised to error handler?
+    return false;
+  }
+
+  return true;
+}
+
+void SqlConnection::ProcessResults() {
+  TDSRET rc;
+  int i;
+  int ctype;
+  TDS_INT resulttype;
+  TDS_INT srclen;
+  unsigned char *src;
+  TDSCOLUMN *col;
+  int rows = 0;
+  CONV_RESULT dres;
+  static const char *opt_col_term = "\t";
+  static const char *opt_row_term = "\n";
+
+  while ((rc = tds_process_tokens(_tds, &resulttype, nullptr, TDS_TOKEN_RESULTS)) == TDS_SUCCESS) {
+    const int stop_mask = TDS_STOPAT_ROWFMT | TDS_RETURN_DONE | TDS_RETURN_ROW | TDS_RETURN_COMPUTE;
+#if 0
+    if (opt_flags & OPT_TIMER) {
+      gettimeofday(&start, NULL);
+      print_rows = 0;
+    }
+#endif
+    switch (resulttype) {
+      case TDS_ROWFMT_RESULT:
+        if (_tds->current_results != nullptr) {
+          for (i = 0; i < _tds->current_results->num_cols; i++) {
+            if (i) fputs(opt_col_term, stdout);
+            fputs(tds_dstr_cstr(&_tds->current_results->columns[i]->column_name), stdout);
+          }
+          fputs(opt_row_term, stdout);
+        }
+        break;
+      case TDS_COMPUTE_RESULT:
+      case TDS_ROW_RESULT:
+        rows = 0;
+        while ((rc = tds_process_tokens(_tds, &resulttype, nullptr, stop_mask)) == TDS_SUCCESS) {
+          if (resulttype != TDS_ROW_RESULT && resulttype != TDS_COMPUTE_RESULT)
+            break;
+
+          rows++;
+
+          if (!_tds->current_results)
+            continue;
+
+          for (i = 0; i < _tds->current_results->num_cols; i++) {
+            col = _tds->current_results->columns[i];
+            if (col->column_cur_size < 0) {
+              if (i) fputs(opt_col_term, stdout);
+              fputs("NULL", stdout);
+              continue;
+            }
+            ctype = tds_get_conversion_type(col->column_type, col->column_size);
+
+            src = col->column_data;
+            if (is_blob_col(col) && col->column_type != SYBVARIANT) {
+              src = (unsigned char *) ((TDSBLOB *) src)->textvalue;
+            }
+            srclen = col->column_cur_size;
+
+            if (tds_convert(tds_get_ctx(_tds), ctype, src, srclen, SYBVARCHAR, &dres) < 0)
+              continue;
+            if (i) fputs(opt_col_term, stdout);
+            fputs(dres.c, stdout);
+            free(dres.c);
+          }
+          fputs(opt_row_term, stdout);
+        }
+
+//        if (!QUIET) printf("(%d row%s affected)\n", rows, rows == 1 ? "" : "s");
+        break;
+      case TDS_STATUS_RESULT:
+#if 0
+        if (!QUIET)
+          printf("(return status = %d)\n", tds->ret_status);
+#endif
+        break;
+      default:
+        break;
+    }
+  }
+}
+
 #if 0
 
 void SqlConnection::Dispose()

@@ -24,19 +24,27 @@ FXIMPLEMENT(QueryTabItem, FXTabItem, queryTabItemMap, ARRAYNUMBER(queryTabItemMa
 QueryTabItem::QueryTabItem(FXTabBook *tabbook, const FXString& label, tds::SqlConnection *conn) :
   FXTabItem(tabbook, label, nullptr), parent(tabbook), conn{conn}
 {
-  frame = new FXHorizontalFrame(parent, FRAME_THICK|FRAME_RAISED);
+  frame = new FXVerticalFrame(parent, FRAME_THICK|FRAME_RAISED);
 
-  FXSplitter *splitter = new FXSplitter(frame, SPLITTER_VERTICAL | LAYOUT_FILL_X | LAYOUT_FILL_Y);
+  splitter = new FXSplitter(frame, SPLITTER_VERTICAL | SPLITTER_REVERSED | LAYOUT_FILL_X | LAYOUT_FILL_Y);
   FXVerticalFrame *queryTextFrame = new FXVerticalFrame(splitter, FRAME_SUNKEN | FRAME_THICK |
       LAYOUT_FILL_X | LAYOUT_FILL_Y, 0,0, 0, 0, 0,0,0,0);
   text = new FXText(queryTextFrame, nullptr, 0, LAYOUT_FILL_X | LAYOUT_FILL_Y);
 
+  statusBar = new FXStatusBar(frame, LAYOUT_FILL_X);
 #if 0
   // if query executed
-  FXVerticalFrame *queryTableFrame = new FXVerticalFrame(splitter, FRAME_SUNKEN | FRAME_THICK |
+  queryFrame = new FXVerticalFrame(splitter, FRAME_SUNKEN | FRAME_THICK |
       LAYOUT_FILL_X | LAYOUT_FILL_Y, 0,0, 0, 0, 0,0,0,0);
+
+  queryFrame->setHeight(0);
+  splitter->hide();
+  //queryFrame->hide();
+
+#endif
+#if 0
 //  FXText *text2 = new FXText(splitter, nullptr, 0, LAYOUT_FILL_X | LAYOUT_FILL_Y);
-  FXTable *table=new FXTable(queryTableFrame,nullptr,0,TABLE_COL_SIZABLE|TABLE_ROW_SIZABLE|LAYOUT_FILL_X|LAYOUT_FILL_Y,0,0,0,0, 2,2,2,2);
+  FXTable *table=new FXTable(queryFrame,nullptr,0,TABLE_COL_SIZABLE|TABLE_ROW_SIZABLE|LAYOUT_FILL_X|LAYOUT_FILL_Y,0,0,0,0, 2,2,2,2);
 
   table->setVisibleRows(20);
   table->setVisibleColumns(8);
@@ -81,7 +89,43 @@ QueryTabItem::QueryTabItem(FXTabBook *tabbook, const FXString& label, tds::SqlCo
 void QueryTabItem::ExecuteQuery()
 {
   //
-  printf("Executing %s\n", text->getText().text());
+  printf("2 Executing %s\n", text->getText().text());
+
+  if (queryFrame == nullptr) {
+    queryFrame = new FXVerticalFrame(splitter, FRAME_SUNKEN | FRAME_THICK |
+                                               LAYOUT_FILL_X | LAYOUT_FILL_Y, 0, 0, 0, 0, 0, 0, 0, 0);
+    queryFrame->create();
+  } else {
+    int numChildren = queryFrame->numChildren();
+
+    for (int i = 0; i < numChildren; i++) {
+      FXWindow *child = queryFrame->childAtIndex(i);
+      child->destroy();
+      delete child;
+    }
+  }
+
+  statusBar->getStatusLine()->setNormalText("Executing query");
+
+
+  // submit to freetds
+  conn->SubmitQuery(text->getText().text());
+
+
+  conn->ProcessResults();
+
+  statusBar->getStatusLine()->setNormalText("Done!");
+
+#if 1
+  FXText *text2 = new FXText(queryFrame, nullptr, 0, LAYOUT_FILL_X | LAYOUT_FILL_Y);
+  text2->create();
+  text2->show();
+
+  //queryFrame->layout();
+#endif
+
+  queryFrame->show();
+
 }
 
 void QueryTabItem::create()
@@ -90,11 +134,10 @@ void QueryTabItem::create()
 
   frame->create();
   /*
-  frame->create();
   splitter->create();
-  queryTextFrame->create();
+//  queryTextFrame->create();
   text->create();
-  queryTableFrame->create();
-  table->create();
-*/
+//  queryTableFrame->create();
+//  table->create();
+   */
 }

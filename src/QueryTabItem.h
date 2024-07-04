@@ -40,7 +40,11 @@ private:
   FXTabBook *parent;
   FXText *text;
 
-  FXHorizontalFrame *frame;
+  FXVerticalFrame *frame;
+  FXSplitter *splitter;
+  FXStatusBar *statusBar;
+
+  FXVerticalFrame *queryFrame{nullptr};
 
   tds::SqlConnection *conn;
 };

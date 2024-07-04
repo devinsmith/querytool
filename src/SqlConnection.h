@@ -19,6 +19,7 @@
 
 #include <string>
 #include <vector>
+#include <fx.h>
 
 #include "tds/include/freetds/tds.h"
 
@@ -26,7 +27,7 @@
 
 namespace tds {
 
-class SqlConnection {
+class SqlConnection : public FXObject {
 public:
   explicit SqlConnection(const Server& serverInfo) :
     _serverInfo{serverInfo}, _tds{nullptr},
@@ -45,6 +46,9 @@ public:
   bool Connect();
 
   void Disconnect();
+
+  bool SubmitQuery(const char *sql);
+  void ProcessResults();
 #if 0
 
   // When a query is executed freetds buffers the results into a
