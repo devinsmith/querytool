@@ -24,9 +24,6 @@
 #include "SqlConnection.h"
 #include "freetds/convert.h"
 
-// Global context
-static TDSCONTEXT *context;
-
 namespace tds {
 
 static void (*g_log_func)(int level, const char *msg) = nullptr;
@@ -36,22 +33,16 @@ static void (*g_log_func)(int level, const char *msg) = nullptr;
 extern "C" int
 sql_db_msg_handler(const TDSCONTEXT *context, TDSSOCKET *tds, const TDSMESSAGE *msg)
 {
-  if (msg->msgno == 5701 || msg->msgno == 5703 || msg->msgno == 5704)
+  if (msg->msgno == 5701 || msg->msgno == 5703 || msg->msgno == 5704) {
     return 0;
-
-#if 0
-  if (auto *conn = reinterpret_cast<SqlConnection *>(dbgetuserdata(dbproc)); conn != nullptr) {
-    return conn->MsgHandler(dbproc, msgno, msgstate, severity, msgtext, srvname,
-        procname, line);
   }
-#endif
 
-  // No connection associated??
-  return 0;
+  auto *conn = static_cast<SqlConnection *>(context->parent);
+  return conn->MsgHandler(tds, msg->msgno, msg->state, msg->severity,
+  msg->message, msg->server, msg->proc_name, msg->line_number);
 }
 
-#if 0
-int SqlConnection::MsgHandler(DBPROCESS * dbproc, DBINT msgno, int msgstate,
+int SqlConnection::MsgHandler(TDSSOCKET *socket, int msgno, int msgstate,
     int severity, char *msgtext, char *srvname, char *procname, int line)
 {
   /*
@@ -88,7 +79,8 @@ int SqlConnection::MsgHandler(DBPROCESS * dbproc, DBINT msgno, int msgstate,
         _error += std::to_string(line);
       }
       _error += "\n";
-      if (char const *database = dbname(dbproc); database != nullptr && *database != '\0') {
+      const char *database = socket->conn[0].env.database;
+      if (database != nullptr) {
         _error += "Database '";
         _error += database;
         _error += "'\n";
@@ -127,9 +119,10 @@ int SqlConnection::MsgHandler(DBPROCESS * dbproc, DBINT msgno, int msgstate,
     return 0;
   }
 
+  tgt->handle(this, FXSEL(SEL_COMMAND, ID_ERROR), &_error);
+
   return severity > 0;
 }
-#endif
 
 extern "C" int
 sql_db_err_handler(const TDSCONTEXT *context, TDSSOCKET *tds, const TDSMESSAGE *msg)
@@ -154,7 +147,13 @@ void sql_log(int level, const char *msg)
 // FreeTDS DBLib requires some initialization.
 void sql_startup(void (*log_func)(int, const char *))
 {
-  context = tds_alloc_context(nullptr);
+  g_log_func = log_func;
+}
+
+SqlConnection::SqlConnection(const Server& serverInfo) :
+    _serverInfo{serverInfo}
+{
+  context = tds_alloc_context(this);
   if (context == nullptr) {
     fprintf(stderr, "context cannot be null\n");
     return;
@@ -165,19 +164,6 @@ void sql_startup(void (*log_func)(int, const char *))
   }
   context->msg_handler = sql_db_msg_handler;
   context->err_handler = sql_db_err_handler;
-
-  //dbinit();
-
-  //dbmsghandle(sql_db_msg_handler);
-  //dberrhandle(sql_db_err_handler);
-
-  //dbsetlogintime(5);
-  g_log_func = log_func;
-}
-
-void sql_shutdown()
-{
-  //dbexit();
 }
 
 SqlConnection::~SqlConnection()
@@ -318,6 +304,7 @@ void SqlConnection::ProcessResults() {
     switch (resulttype) {
       case TDS_ROWFMT_RESULT:
         if (_tds->current_results != nullptr) {
+          tgt->handle(this, FXSEL(SEL_COMMAND, ID_ROW_HEADER), _tds->current_results);
           for (i = 0; i < _tds->current_results->num_cols; i++) {
             if (i) fputs(opt_col_term, stdout);
             fputs(tds_dstr_cstr(&_tds->current_results->columns[i]->column_name), stdout);

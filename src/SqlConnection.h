@@ -29,13 +29,18 @@ namespace tds {
 
 class SqlConnection : public FXObject {
 public:
-  explicit SqlConnection(const Server& serverInfo) :
-    _serverInfo{serverInfo}, _tds{nullptr},
-    _fetched_rows{true}, _fetched_results{true} {}
+  explicit SqlConnection(const Server& serverInfo);
 
   ~SqlConnection();
 
-  // No move or copy support. I don't want to deal with TDSSOCKET pointer.
+  enum {
+    ID_READ = FXMainWindow::ID_LAST+1100,
+    ID_ROW_HEADER,
+    ID_ROW_READ,
+    ID_ERROR,
+  };
+
+  // No move or copy support. I don't want to deal with various pointers.
   SqlConnection(const SqlConnection&) = delete;
   SqlConnection& operator=(const SqlConnection&) = delete;
   SqlConnection(SqlConnection&&) = delete;
@@ -81,28 +86,25 @@ public:
   int GetInt32ColByName(const char *colName);
   int GetMoneyCol(int col, int *dol_out, int *cen_out);
   bool IsNullCol(int col);
-
-  // FreeTDS callback helper
-#if 0
-  int MsgHandler(DBPROCESS * dbproc, DBINT msgno, int msgstate,
-    int severity, char *msgtext, char *srvname, char *procname, int line);
 #endif
+  // FreeTDS callback helper
+  int MsgHandler(TDSSOCKET *socket, int msgno, int msgstate,
+      int severity, char *msgtext, char *srvname, char *procname, int line);
 
 private:
+#if 0
   void run_initial_query();
   static std::string fix_server(const char *str);
 #endif
   const Server& _serverInfo;
-  FXObject *tgt;
-  TDSSOCKET *_tds;
-  bool _fetched_rows;
-  bool _fetched_results;
+  FXObject *tgt{nullptr};
+  TDSCONTEXT *context{nullptr};
+  TDSSOCKET *_tds{nullptr};
   std::string _error;
 
 };
 
 void sql_startup(void (*log_func)(int, const char *));
-void sql_shutdown();
 void sql_log(int level, const char *msg);
 
 } // namespace tds

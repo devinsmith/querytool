@@ -41,7 +41,5 @@ int main(int argc, char *argv[])
 
   app.run();
 
-  tds::sql_shutdown();
-
   return 0;
 }
