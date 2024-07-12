@@ -15,8 +15,11 @@
 //
 
 #include "QueryTabItem.h"
+#include "freetds/convert.h"
 
 FXDEFMAP(QueryTabItem) queryTabItemMap[] = {
+  FXMAPFUNC(SEL_COMMAND, tds::SqlConnection::ID_ROW_HEADER, QueryTabItem::OnRowHeaderRead),
+  FXMAPFUNC(SEL_COMMAND, tds::SqlConnection::ID_ROW_READ, QueryTabItem::OnRowRead)
 };
 
 FXIMPLEMENT(QueryTabItem, FXTabItem, queryTabItemMap, ARRAYNUMBER(queryTabItemMap))
@@ -30,6 +33,11 @@ QueryTabItem::QueryTabItem(FXTabBook *tabbook, const FXString& label, tds::SqlCo
   FXVerticalFrame *queryTextFrame = new FXVerticalFrame(splitter, FRAME_SUNKEN | FRAME_THICK |
       LAYOUT_FILL_X | LAYOUT_FILL_Y, 0,0, 0, 0, 0,0,0,0);
   text = new FXText(queryTextFrame, nullptr, 0, LAYOUT_FILL_X | LAYOUT_FILL_Y);
+
+  queryFrame = new FXVerticalFrame(splitter, FRAME_SUNKEN | FRAME_THICK |
+                                             LAYOUT_FILL_X | LAYOUT_FILL_Y, 0, 0, 0, 0, 0, 0, 0, 0);
+  queryFrame->hide();
+
 
   statusBar = new FXStatusBar(frame, LAYOUT_FILL_X);
 
@@ -91,34 +99,63 @@ QueryTabItem::QueryTabItem(FXTabBook *tabbook, const FXString& label, tds::SqlCo
 void QueryTabItem::ExecuteQuery()
 {
   //
-  printf("2 Executing %s\n", text->getText().text());
+  printf("Executing %s\n", text->getText().text());
 
+#if 0
   if (queryFrame == nullptr) {
     queryFrame = new FXVerticalFrame(splitter, FRAME_SUNKEN | FRAME_THICK |
                                                LAYOUT_FILL_X | LAYOUT_FILL_Y, 0, 0, 0, 0, 0, 0, 0, 0);
     queryFrame->create();
-  } else {
+    queryFrame->show();
     int numChildren = queryFrame->numChildren();
 
+    printf("NEW: Num children: %d\n", numChildren);
+
+  } else {
+#endif
+    int numChildren = queryFrame->numChildren();
+    printf("OLD: Num children: %d\n", numChildren);
     for (int i = 0; i < numChildren; i++) {
       FXWindow *child = queryFrame->childAtIndex(i);
       child->destroy();
       delete child;
     }
+#if 0
   }
+#endif
+  queryFrame->show();
+
+
 
   statusBar->getStatusLine()->setNormalText("Executing query");
 
 
+
   // submit to freetds
   conn->SubmitQuery(text->getText().text());
-
-
   conn->ProcessResults();
+
+  printf("After process results\n");
 
   statusBar->getStatusLine()->setNormalText("Done!");
 
-#if 1
+#if 0
+  if (resultTable != nullptr) {
+    resultTable->destroy();
+    delete resultTable;
+  }
+#endif
+
+#if 0
+
+  resultTable = new FXTable(queryFrame,nullptr,0,TABLE_COL_SIZABLE|TABLE_ROW_SIZABLE|LAYOUT_FILL_X|LAYOUT_FILL_Y,0,0,0,0, 2,2,2,2);
+  resultTable->setRowHeaderMode(LAYOUT_FIX_WIDTH);
+  //resultTable->setRowHeaderWidth(0);
+
+  resultTable->create();
+  resultTable->show();
+#endif
+#if 0
   FXText *text2 = new FXText(queryFrame, nullptr, 0, LAYOUT_FILL_X | LAYOUT_FILL_Y);
   text2->create();
   text2->show();
@@ -126,7 +163,99 @@ void QueryTabItem::ExecuteQuery()
   //queryFrame->layout();
 #endif
 
-  queryFrame->show();
+
+
+}
+
+long QueryTabItem::OnRowHeaderRead(FX::FXObject *, FX::FXSelector, void *data)
+{
+  printf("%s\n", __func__ );
+
+  auto *resultInfo = static_cast<TDSRESULTINFO *>(data);
+
+  resultTable = new FXTable(queryFrame,nullptr,0,TABLE_COL_SIZABLE|TABLE_ROW_SIZABLE|LAYOUT_FILL_X|LAYOUT_FILL_Y,0,0,0,0, 2,2,2,2);
+  resultTable->setRowHeaderMode(LAYOUT_FIX_WIDTH);
+  resultTable->setRowHeaderWidth(0);
+  resultTable->setTableSize(0,resultInfo->num_cols);
+
+  resultTable->setBackColor(FXRGB(255,255,255));
+  resultTable->setCellColor(0,0,FXRGB(255,255,255));
+  resultTable->setCellColor(0,1,FXRGB(255,240, 240));
+  resultTable->setCellColor(1,0,FXRGB(240, 255, 240));
+  resultTable->setCellColor(1,1,FXRGB(240, 240, 255));
+
+  for(int c=0; c<resultInfo->num_cols; c++){
+    resultTable->setColumnText(c, tds_dstr_cstr(&resultInfo->columns[c]->column_name));
+  }
+
+  resultTable->create();
+  resultTable->show();
+
+
+
+
+  queryFrame->layout();
+  queryFrame->recalc();
+  queryFrame->update();
+
+#if 0
+  resultTable = new FXTable(queryFrame,nullptr,0,TABLE_COL_SIZABLE|TABLE_ROW_SIZABLE|LAYOUT_FILL_X|LAYOUT_FILL_Y,0,0,0,0, 2,2,2,2);
+
+  resultTable->setVisibleRows(20);
+  resultTable->setVisibleColumns(resultInfo->num_cols);
+
+  // Remove row header
+  resultTable->setRowHeaderMode(LAYOUT_FIX_WIDTH);
+  resultTable->setRowHeaderWidth(0);
+  resultTable->setTableSize(50,resultInfo->num_cols);
+
+  for(int c=0; c<resultInfo->num_cols; c++){
+    resultTable->setColumnText(c, tds_dstr_cstr(&resultInfo->columns[c]->column_name));
+  }
+
+  resultTable->create();
+  resultTable->show();
+#endif
+  return 1;
+}
+
+long QueryTabItem::OnRowRead(FX::FXObject *, FX::FXSelector, void *data)
+{
+  printf("%s\n", __PRETTY_FUNCTION__);
+  auto *resultInfo = static_cast<TDSRESULTINFO *>(data);
+
+  //int col = resultTable->getNumColumns();
+  int row = resultTable->getNumRows();
+  printf("Num row: %d\n", row);
+
+  resultTable->insertRows(row);
+  //row++;
+
+  for(int c=0; c<resultInfo->num_cols; c++){
+
+    auto *col = resultInfo->columns[c];
+    if (col->column_cur_size < 0) {
+      resultTable->setItemText(row,c,"NULL");
+      continue;
+    }
+
+    int ctype = tds_get_conversion_type(col->column_type, col->column_size);
+
+    unsigned char *src = col->column_data;
+    if (is_blob_col(col) && col->column_type != SYBVARIANT) {
+      src = (unsigned char *) ((TDSBLOB *) src)->textvalue;
+    }
+    int srclen = col->column_cur_size;
+
+    CONV_RESULT dres;
+    if (tds_convert(conn->getContext(), ctype, src, srclen, SYBVARCHAR, &dres) < 0)
+      continue;
+    resultTable->setItemText(row,c,dres.c);
+    free(dres.c);
+  }
+
+  // setTableSize will clear out the columns.
+  //resultTable->setTableSize(row + 1, col, TRUE);
 
 }
 

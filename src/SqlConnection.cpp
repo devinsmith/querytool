@@ -14,7 +14,6 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#include <algorithm> // std::replace
 #include <cstring>
 #include <stdexcept>
 #include <langinfo.h>
@@ -22,7 +21,6 @@
 // FreeTDS stuff
 
 #include "SqlConnection.h"
-#include "freetds/convert.h"
 
 namespace tds {
 
@@ -289,9 +287,6 @@ void SqlConnection::ProcessResults() {
   unsigned char *src;
   TDSCOLUMN *col;
   int rows = 0;
-  CONV_RESULT dres;
-  static const char *opt_col_term = "\t";
-  static const char *opt_row_term = "\n";
 
   while ((rc = tds_process_tokens(_tds, &resulttype, nullptr, TDS_TOKEN_RESULTS)) == TDS_SUCCESS) {
     const int stop_mask = TDS_STOPAT_ROWFMT | TDS_RETURN_DONE | TDS_RETURN_ROW | TDS_RETURN_COMPUTE;
@@ -305,11 +300,6 @@ void SqlConnection::ProcessResults() {
       case TDS_ROWFMT_RESULT:
         if (_tds->current_results != nullptr) {
           tgt->handle(this, FXSEL(SEL_COMMAND, ID_ROW_HEADER), _tds->current_results);
-          for (i = 0; i < _tds->current_results->num_cols; i++) {
-            if (i) fputs(opt_col_term, stdout);
-            fputs(tds_dstr_cstr(&_tds->current_results->columns[i]->column_name), stdout);
-          }
-          fputs(opt_row_term, stdout);
         }
         break;
       case TDS_COMPUTE_RESULT:
@@ -324,28 +314,7 @@ void SqlConnection::ProcessResults() {
           if (!_tds->current_results)
             continue;
 
-          for (i = 0; i < _tds->current_results->num_cols; i++) {
-            col = _tds->current_results->columns[i];
-            if (col->column_cur_size < 0) {
-              if (i) fputs(opt_col_term, stdout);
-              fputs("NULL", stdout);
-              continue;
-            }
-            ctype = tds_get_conversion_type(col->column_type, col->column_size);
-
-            src = col->column_data;
-            if (is_blob_col(col) && col->column_type != SYBVARIANT) {
-              src = (unsigned char *) ((TDSBLOB *) src)->textvalue;
-            }
-            srclen = col->column_cur_size;
-
-            if (tds_convert(tds_get_ctx(_tds), ctype, src, srclen, SYBVARCHAR, &dres) < 0)
-              continue;
-            if (i) fputs(opt_col_term, stdout);
-            fputs(dres.c, stdout);
-            free(dres.c);
-          }
-          fputs(opt_row_term, stdout);
+          tgt->handle(this, FXSEL(SEL_COMMAND, ID_ROW_READ), _tds->current_results);
         }
 
 //        if (!QUIET) printf("(%d row%s affected)\n", rows, rows == 1 ? "" : "s");

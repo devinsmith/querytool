@@ -56,6 +56,8 @@ public:
 
   bool SubmitQuery(const char *sql);
   void ProcessResults();
+
+  [[nodiscard]] const TDSCONTEXT* getContext() const { return context; }
 #if 0
 
   // When a query is executed freetds buffers the results into a

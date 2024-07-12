@@ -34,6 +34,9 @@ public:
   virtual void create();
 
   void ExecuteQuery();
+
+  long OnRowHeaderRead(FXObject*,FXSelector,void*);
+  long OnRowRead(FXObject*,FXSelector,void*);
 private:
   QueryTabItem() = default;
 
@@ -45,6 +48,7 @@ private:
   FXStatusBar *statusBar;
 
   FXVerticalFrame *queryFrame{nullptr};
+  FXTable *resultTable{nullptr};
 
   tds::SqlConnection *conn;
 };
