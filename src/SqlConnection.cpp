@@ -117,6 +117,8 @@ int SqlConnection::MsgHandler(TDSSOCKET *socket, int msgno, int msgstate,
     return 0;
   }
 
+  printf("Error: %s", _error.c_str());
+
   tgt->handle(this, FXSEL(SEL_COMMAND, ID_ERROR), &_error);
 
   return severity > 0;
@@ -280,12 +282,7 @@ bool SqlConnection::SubmitQuery(const char *sql)
 
 void SqlConnection::ProcessResults() {
   TDSRET rc;
-  int i;
-  int ctype;
   TDS_INT resulttype;
-  TDS_INT srclen;
-  unsigned char *src;
-  TDSCOLUMN *col;
   int rows = 0;
 
   while ((rc = tds_process_tokens(_tds, &resulttype, nullptr, TDS_TOKEN_RESULTS)) == TDS_SUCCESS) {
