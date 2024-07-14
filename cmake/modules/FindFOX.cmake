@@ -21,6 +21,7 @@ set(FOX_FOUND FALSE)
 # if fox-config was executed successfully, fox was found
 if(FOX_LIBRARY AND FOX_CXX_FLAGS)
     SET(FOX_FOUND TRUE)
+    set(FOX_INCLUDE_DIR FOX_CXX_FLAGS)
 else()
     # In Windows system, find the fox directory using as hint the environment variable "FOX_INCLUDE_DIR"
     FIND_PATH(FOX_INCLUDE_DIR NAMES fx.h HINTS $ENV{FOX_INCLUDE_DIR})
