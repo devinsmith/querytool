@@ -21,30 +21,19 @@
 #include <config.h>
 
 #include <stdio.h>
-
 #include <errno.h>
-
 #include <unistd.h>
-
 #include <stdlib.h>
 #include <string.h>
 
 #include <sys/socket.h>
-
 #include <netinet/in.h>
-
 #include <netinet/tcp.h>
-
 #include <arpa/inet.h>
-
 #include <sys/ioctl.h>
-
 #include <sys/select.h>
-
 #include <poll.h>
-
 #include <fcntl.h>
-
 #include <sys/eventfd.h>
 
 #ifdef _WIN32

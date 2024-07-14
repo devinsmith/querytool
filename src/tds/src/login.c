@@ -20,15 +20,12 @@
 
 #include <config.h>
 
-#include <algorithm>
-#include <cstdio>
-#include <cstdlib>
-#include <cassert>
-#include <cstring>
+#include <stdio.h>
+#include <stdlib.h>
+#include <assert.h>
+#include <string.h>
 
-#if HAVE_UNISTD_H
 #include <unistd.h>
-#endif /* HAVE_UNISTD_H */
 
 #include <sys/socket.h>
 
@@ -47,6 +44,9 @@ static TDSRET tds71_do_login(TDSSOCKET * tds, TDSLOGIN * login);
 static TDSRET tds7_send_login(TDSSOCKET * tds, const TDSLOGIN * login);
 static void tds7_crypt_pass(const unsigned char *clear_pass,
 			    size_t len, unsigned char *crypt_pass);
+
+#undef MIN
+#define MIN(a,b) (((a) < (b)) ? (a) : (b))
 
 void
 tds_set_port(TDSLOGIN * tds_login, int port)
@@ -626,7 +626,7 @@ tds7_send_login(TDSSOCKET * tds, const TDSLOGIN * login)
 			field->len = 4;
 			continue;
 		}
-		data_stream.size = std::min(data_stream.size, data_pos + field->limit);
+		data_stream.size = MIN(data_stream.size, data_pos + field->limit);
 		data_stream.stream.write(&data_stream.stream, 0);
 		field->len = data_stream.size - data_pos;
 	}
@@ -744,7 +744,7 @@ tds7_send_login(TDSSOCKET * tds, const TDSLOGIN * login)
 
 	/* authentication stuff */
 	TDS_PUT_SMALLINT(tds, current_pos + data_stream.size);
-	TDS_PUT_SMALLINT(tds, std::min(auth_len, 0xfffful));
+	TDS_PUT_SMALLINT(tds, MIN(auth_len, 0xfffful));
 
 	/* db file */
 	PUT_STRING_FIELD_PTR(DB_FILENAME);

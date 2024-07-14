@@ -21,21 +21,14 @@
 #include <config.h>
 
 #include <stdio.h>
-
 #include <assert.h>
-
 #include <stdlib.h>
-
 #include <string.h>
 
 #include <unistd.h>
-
 #include <netdb.h>
-
 #include <sys/socket.h>
-
 #include <sys/types.h>
-
 
 #include <freetds/tds.h>
 #include <freetds/utils/string.h>
@@ -87,7 +80,7 @@ tds_read_config_info(TDSSOCKET * tds, TDSLOGIN * login, TDSLOCALE * locale)
 	TDSLOGIN *connection = tds_alloc_login();
 	if (!connection || !tds_init_login(connection, locale)) {
 		tds_free_login(connection);
-		return nullptr;
+		return NULL;
 	}
 
 	const char *s = getenv("TDSDUMPCONFIG");
@@ -120,13 +113,13 @@ tds_read_config_info(TDSSOCKET * tds, TDSLOGIN * login, TDSLOCALE * locale)
     if (TDS_SUCCEED(tds_lookup_host_set(tds_dstr_cstr(&connection->server_name), &connection->ip_addrs))) {
       if (!tds_dstr_dup(&connection->server_host_name, &connection->server_name)) {
         tds_free_login(connection);
-        return nullptr;
+        return NULL;
       }
       found = true;
     }
     if (!tds_dstr_dup(&login->server_name, &connection->server_name)) {
       tds_free_login(connection);
-      return nullptr;
+      return NULL;
     }
   }
 
@@ -136,7 +129,7 @@ tds_read_config_info(TDSSOCKET * tds, TDSLOGIN * login, TDSLOCALE * locale)
 		if (!tds_read_interfaces(tds_dstr_cstr(&login->server_name), connection)) {
 			tdsdump_log(TDS_DBG_INFO1, "Failed to find [%s] in configuration files; trying '%s' instead.\n",
 						   tds_dstr_cstr(&login->server_name), tds_dstr_cstr(&connection->server_name));
-			if (connection->ip_addrs == nullptr) {
+			if (connection->ip_addrs == NULL) {
         tdserror(tds_get_ctx(tds), tds, TDSEINTF, 0);
       }
 		}
@@ -148,7 +141,7 @@ tds_read_config_info(TDSSOCKET * tds, TDSLOGIN * login, TDSLOCALE * locale)
 	/* And finally apply anything from the login structure */
 	if (!tds_config_login(connection, login)) {
 		tds_free_login(connection);
-		return nullptr;
+		return NULL;
 	}
 	
 	if (opened) {
@@ -158,10 +151,10 @@ tds_read_config_info(TDSSOCKET * tds, TDSLOGIN * login, TDSLOCALE * locale)
 		tdsdump_log(TDS_DBG_INFO1, "\t%20s = %s\n", "server_name", tds_dstr_cstr(&connection->server_name));
 		tdsdump_log(TDS_DBG_INFO1, "\t%20s = %s\n", "server_host_name", tds_dstr_cstr(&connection->server_host_name));
 
-		for (struct addrinfo *addrs = connection->ip_addrs; addrs != nullptr; addrs = addrs->ai_next)
+		for (struct addrinfo *addrs = connection->ip_addrs; addrs != NULL; addrs = addrs->ai_next)
 			tdsdump_log(TDS_DBG_INFO1, "\t%20s = %s\n", "ip_addr", tds_addrinfo2str(addrs, tmp, sizeof(tmp)));
 
-		if (connection->ip_addrs == nullptr)
+		if (connection->ip_addrs == NULL)
 			tdsdump_log(TDS_DBG_INFO1, "\t%20s = %s\n", "ip_addr", "");
 
 		tdsdump_log(TDS_DBG_INFO1, "\t%20s = %s\n", "instance_name", tds_dstr_cstr(&connection->instance_name));

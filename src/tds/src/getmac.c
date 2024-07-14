@@ -19,7 +19,7 @@
 
 #include <config.h>
 
-#include <cstring>
+#include <string.h>
 
 #include <freetds/tds.h>
 
